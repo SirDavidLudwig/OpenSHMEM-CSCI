@@ -7,7 +7,7 @@ void shmem_init()
 	//
 }
 
-void shmem_my_pe()
+int shmem_my_pe()
 {
 	//
 }
