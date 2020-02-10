@@ -100,7 +100,14 @@ void shmem_sync_all()
 
 void *shmem_malloc(size_t size)
 {
-	//
+	/* Generate Key */
+
+	// Allocate from the symmetric heap
+	void* ptr = shm_malloc(size);
+
+	// Barrier
+
+	return ptr;
 }
 
 // Memory Ordering ---------------------------------------------------------------------------------
