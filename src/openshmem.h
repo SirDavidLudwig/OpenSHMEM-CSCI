@@ -25,6 +25,7 @@ int shmem_my_pe();
 int shmem_n_pes();
 
 /**
+ * [Collective]
  * Release all resources used by OpenSHMEM
  */
 void shmem_finalize();
