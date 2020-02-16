@@ -35,40 +35,34 @@ void shmem_finalize();
 /**
  * Copy data from the specified PE
  */
-void shmem_get(TYPE *dest, const TYPE *source, size_t nelems, int pe);
-void shmem_get(shmem_ctx_t ctx, TYPE *dest, const TYPE *source, size_t nelems, int pe);
+void shmem_get(char *dest, const char *source, size_t nelems, int pe);
 
 /**
  * Copy data from a contiguous local data object to a data object on the specified PE
  */
-void shmem_put(TYPE *dest, const TYPE *source, size_t nelems, int pe);
-void shmem_put(shmem_ctx_t ctx, TYPE *dest, const TYPE *source, size_t nelems, int pe);
+void shmem_put(char *dest, const char *source, size_t nelems, int pe);
 
 /**
  * [Nonblocking]
  * Copy data from the specified PE
  */
-void shmem_get_nbi(TYPE *dest, const TYPE *source, size_t nelems, int pe);
-void shmem_get_nbi(shmem_ctx_t ctx, TYPE *dest, const TYPE *source, size_t nelems, int pe);
+void shmem_get_nbi(char *dest, const char *source, size_t nelems, int pe);
 
 /**
  * [Nonblocking]
  * Copy data from a contiguous local data object to a data object on the specified PE
  */
-void shmem_put_nbi(TYPE *dest, const TYPE *source, size_t nelems, int pe);
-void shmem_put_nbi(shmem_ctx_t ctx, TYPE *dest, const TYPE *source, size_t nelems, int pe);
+void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe);
 
 /**
  * Copy data from the specified PE
  */
-void shmem_getmem(TYPE *dest, const TYPE *source, size_t nelems, int pe);
-void shmem_getmem(shmem_ctx_t ctx, TYPE *dest, const TYPE *source, size_t nelems, int pe);
+void shmem_getmem(char *dest, const char *source, size_t nelems, int pe);
 
 /**
  * Copy data from a contiguous local data object to a data object on the specified PE
  */
-void shmem_putmem(TYPE *dest, const TYPE *source, size_t nelems, int pe);
-void shmem_putmem(shmem_ctx_t ctx, TYPE *dest, const TYPE *source, size_t nelems, int pe);
+void shmem_putmem(char *dest, const char *source, size_t nelems, int pe);
 
 // Collectives -------------------------------------------------------------------------------------
 
@@ -98,4 +92,3 @@ void *shmem_malloc(size_t size);
  * Ensures completion of Put, AMO, memory store, and nonblocking Put and Get routines
  */
 void shmem_quiet();
-void shmem_ctx_quiet(shmem_ctx_t ctx);
