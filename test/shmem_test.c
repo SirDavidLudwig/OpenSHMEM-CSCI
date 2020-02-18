@@ -2,10 +2,10 @@
 
 #include "../src/shmem.h"
 
-int main()
+int main(int argc, char *argv[])
 {
 	printf("Hello World!\n");
-	shmem_init();
+	shmem_init(argc, argv);
 
 	char *a = shmem_malloc(sizeof(char));
 	int *b = shmem_malloc(sizeof(int));

@@ -2,10 +2,17 @@
 
 // Library Setup/Querying --------------------------------------------------------------------------
 
-void shmem_init()
+int MY_PE;
+int N_PES;
+
+void shmem_init(int argc, char *argv[])
 {
 	// MPI init
-	// MPI_Init();
+	MPI_Init(&argc, &argv);
+
+	// PE information
+	MPI_Comm_rank(MPI_COMM_WORLD, &MY_PE);
+	MPI_Comm_size(MPI_COMM_WORLD, &N_PES);
 
 	// @TODO
 	// Malloc shared memory
@@ -14,17 +21,21 @@ void shmem_init()
 
 int shmem_my_pe()
 {
-	//
+	return MY_PE;
 }
 
 int shmem_n_pes()
 {
-	//
+	return N_PES;
 }
 
 void shmem_finalize()
 {
+	// Free shared memory
 	shm_free();
+
+	// Close MPI
+	MPI_Finalize();
 }
 
 // Remote Memory Access ----------------------------------------------------------------------------

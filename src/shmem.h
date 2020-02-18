@@ -3,6 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <mpi/mpi.h>
 
 #include "shared_memory.h"
 
@@ -12,7 +13,7 @@
  * [Collective]
  * Allocates and initializes resources used by OpenSHMEM
  */
-void shmem_init();
+void shmem_init(int argc, char *argv[]);
 
 /**
  * Returns the PE number for the calling PE
