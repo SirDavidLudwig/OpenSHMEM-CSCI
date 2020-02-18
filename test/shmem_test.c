@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "../src/openshmem.h"
+#include "../src/shmem.h"
 
 int main()
 {
@@ -11,7 +11,9 @@ int main()
 	int *b = shmem_malloc(sizeof(int));
 
 	*a = 'a';
-	*b = 100 << 8;
+	*b = 100;
+
+	printf("%d %d\n", *a, *b);
 
 	return 0;
 }

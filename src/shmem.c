@@ -1,83 +1,86 @@
 #include "shmem.h"
 
-// Private Members Data ----------------------------------------------------------------------------
+// Library Setup/Querying --------------------------------------------------------------------------
 
-/**
- * The symmetric heap
- */
-void* __sym_heap;
-
-/**
- * A pointer to the end of the symmetric heap
- */
-int __heap_ptr;
-
-// Private Member Functions ------------------------------------------------------------------------
-
-/**
- * Create the shared memory object and allocate the requested bytes
- */
-int	shm_create(size_t bytes, int pe)
+void shmem_init()
 {
-	int fd;
-	char name[255];
+	// MPI init
+	// MPI_Init();
 
-	sprintf(name, "/%d-shmem-%d", getpid(), pe);
-
-	// Create the shared memory object
-	fd = shm_open(name, O_CREAT | O_RDWR, 0666);
-	if (fd != -1) {
-		// Allocate the size of the memory object
-		ftruncate(fd, bytes);
-	}
-
-	// Return success
-	return fd;
+	// @TODO
+	// Malloc shared memory
+	shm_init(0);
 }
 
-// Heap Management ---------------------------------------------------------------------------------
-
-/**
- * Create and map a shared memory object. Returns -1 upon error
- */
-int shm_init(int pe)
+int shmem_my_pe()
 {
-	int fd;
-	int result;
-
-	// Create and allocate the shared memory object
-	fd = shm_create(HEAP_SIZE, pe);
-	if (result == -1) {
-		perror("Shared memory failed\n");
-		return SHM_ERROR_CREATE;
-	}
-
-	// Map the shared memory object to the virtual address space
-	__sym_heap = mmap(0, HEAP_SIZE, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-	if (__sym_heap == MAP_FAILED)
-	{
-		perror("mmap\n");
-		return SHM_ERROR_MAP;
-	}
-
-	// 0 out the heep
-	memset(__sym_heap, 0, HEAP_SIZE);
-
-	// Return success
-	return SHM_ERROR_NONE;
+	//
 }
 
-/**
- * Malloc the given size of bytes on the heap
- */
-void* shm_malloc(size_t bytes)
+int shmem_n_pes()
 {
-	// Get the address in the symmetric heap
-	void* addr = __sym_heap + __heap_ptr;
+	//
+}
 
-	// Calculate the new offset
-	__heap_ptr += bytes;
+void shmem_finalize()
+{
+	//
+}
 
-	// Return the calculated address
-	return addr;
+// Remote Memory Access ----------------------------------------------------------------------------
+
+void shmem_get(char *dest, const char *source, size_t nelems, int pe)
+{
+	shmem_get(dest, source, nelems, pe);
+}
+
+void shmem_put(char *dest, const char *source, size_t nelems, int pe)
+{
+	shmem_put(dest, source, nelems, pe);
+}
+
+void shmem_get_nbi(char *dest, const char *source, size_t nelems, int pe)
+{
+	shmem_get_nbi(dest, source, nelems, pe);
+}
+
+void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe)
+{
+	shmem_put_nbi(dest, source, nelems, pe);
+}
+
+void shmem_getmem(char *dest, const char *source, size_t nelems, int pe)
+{
+	shmem_getmem(dest, source, nelems, pe);
+}
+
+void shmem_putmem(char *dest, const char *source, size_t nelems, int pe)
+{
+	shmem_putmem(dest, source, nelems, pe);
+}
+
+// Collectives -------------------------------------------------------------------------------------
+
+void shmem_barrier_all()
+{
+	//
+}
+
+void shmem_sync_all()
+{
+	//
+}
+
+// Memory Management -------------------------------------------------------------------------------
+
+void *shmem_malloc(size_t size)
+{
+	return shm_malloc(size);
+}
+
+// Memory Ordering ---------------------------------------------------------------------------------
+
+void shmem_quiet()
+{
+	//
 }
