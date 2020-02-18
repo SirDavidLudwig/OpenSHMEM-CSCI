@@ -24,7 +24,7 @@ int shmem_n_pes()
 
 void shmem_finalize()
 {
-	//
+	shm_free();
 }
 
 // Remote Memory Access ----------------------------------------------------------------------------

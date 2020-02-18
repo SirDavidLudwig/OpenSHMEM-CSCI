@@ -15,5 +15,7 @@ int main()
 
 	printf("%d %d\n", *a, *b);
 
+	shmem_finalize();
+
 	return 0;
 }

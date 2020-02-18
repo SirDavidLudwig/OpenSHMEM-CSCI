@@ -68,6 +68,15 @@ int shm_init(int pe)
 }
 
 /**
+ * Clean up any shared memory objects
+ */
+void shm_free()
+{
+	// Unmap the symmetric heap from memory
+	munmap(__sym_heap, HEAP_SIZE);
+}
+
+/**
  * Malloc the given size of bytes on the heap
  */
 void* shm_malloc(size_t bytes)

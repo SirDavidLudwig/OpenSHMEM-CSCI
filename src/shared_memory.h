@@ -29,6 +29,11 @@
 int shm_init(int pe);
 
 /**
+ * Clean up any shared memory objects
+ */
+void shm_free();
+
+/**
  * Malloc the given size of bytes on the heap
  */
 void* shm_malloc(size_t bytes);
