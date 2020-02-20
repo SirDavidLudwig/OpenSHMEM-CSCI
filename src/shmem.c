@@ -5,10 +5,10 @@
 int MY_PE;
 int N_PES;
 
-void shmem_init(int argc, char *argv[])
+void shmem_init()
 {
 	// MPI init
-	MPI_Init(&argc, &argv);
+	MPI_Init(NULL, NULL);
 
 	// PE information
 	MPI_Comm_rank(MPI_COMM_WORLD, &MY_PE);
@@ -17,6 +17,9 @@ void shmem_init(int argc, char *argv[])
 	// @TODO
 	// Malloc shared memory
 	shm_init(0);
+
+	// Create worker thread
+	worker_init();
 }
 
 int shmem_my_pe()
@@ -31,6 +34,9 @@ int shmem_n_pes()
 
 void shmem_finalize()
 {
+	// Shutdown the worker thread
+	worker_finalize();
+
 	// Free shared memory
 	shm_free();
 
@@ -42,22 +48,22 @@ void shmem_finalize()
 
 void shmem_get(char *dest, const char *source, size_t nelems, int pe)
 {
-	shmem_get(dest, source, nelems, pe);
+	shmem_getmem(dest, source, nelems, pe);
 }
 
 void shmem_put(char *dest, const char *source, size_t nelems, int pe)
 {
-	shmem_put(dest, source, nelems, pe);
+	shmem_putmem(dest, source, nelems, pe);
 }
 
 void shmem_get_nbi(char *dest, const char *source, size_t nelems, int pe)
 {
-	shmem_get_nbi(dest, source, nelems, pe);
+	//
 }
 
 void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe)
 {
-	shmem_put_nbi(dest, source, nelems, pe);
+	//
 }
 
 void shmem_getmem(char *dest, const char *source, size_t nelems, int pe)

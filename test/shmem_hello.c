@@ -2,10 +2,10 @@
 #include <stdlib.h>
 #include "../src/shmem.h"
 
-int main(int argc, char *argv[]) {
+int main() {
     int pe, size;
 
-    shmem_init(argc, argv);
+    shmem_init();
     pe = shmem_my_pe();
     size = shmem_n_pes();
 

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <mpi/mpi.h>
 
+#include "worker.h"
 #include "shared_memory.h"
 
 // Library Setup/Querying --------------------------------------------------------------------------
@@ -13,7 +14,7 @@
  * [Collective]
  * Allocates and initializes resources used by OpenSHMEM
  */
-void shmem_init(int argc, char *argv[]);
+void shmem_init();
 
 /**
  * Returns the PE number for the calling PE
@@ -85,7 +86,7 @@ void shmem_sync_all();
  * [Collective]
  * Returns a pointer to a block of at least `size` bytes suitably aligned for any use
  */
-void *shmem_malloc(size_t size);
+void* shmem_malloc(size_t size);
 
 // Memory Ordering ---------------------------------------------------------------------------------
 
