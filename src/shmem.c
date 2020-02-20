@@ -14,9 +14,8 @@ void shmem_init()
 	MPI_Comm_rank(MPI_COMM_WORLD, &MY_PE);
 	MPI_Comm_size(MPI_COMM_WORLD, &N_PES);
 
-	// @TODO
 	// Malloc shared memory
-	shm_init(0);
+	shm_init(MY_PE);
 
 	// Create worker thread
 	worker_init();
@@ -48,32 +47,42 @@ void shmem_finalize()
 
 void shmem_get(char *dest, const char *source, size_t nelems, int pe)
 {
-	shmem_getmem(dest, source, nelems, pe);
+	shmem_getmem(dest, source, nelems * sizeof(char), pe);
 }
 
 void shmem_put(char *dest, const char *source, size_t nelems, int pe)
 {
-	shmem_putmem(dest, source, nelems, pe);
+	shmem_putmem(dest, source, nelems * sizeof(char), pe);
 }
 
 void shmem_get_nbi(char *dest, const char *source, size_t nelems, int pe)
 {
-	//
+	shmem_getmem_nbi(dest, source, nelems * sizeof(char), pe);
 }
 
 void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe)
 {
+	shmem_putmem_nbi(dest, source, nelems * sizeof(char), pe);
+}
+
+void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
+{
 	//
 }
 
-void shmem_getmem(char *dest, const char *source, size_t nelems, int pe)
+void shmem_putmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	shmem_getmem(dest, source, nelems, pe);
+	//
 }
 
-void shmem_putmem(char *dest, const char *source, size_t nelems, int pe)
+void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe)
 {
-	shmem_putmem(dest, source, nelems, pe);
+	//
+}
+
+void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe)
+{
+	//
 }
 
 // Collectives -------------------------------------------------------------------------------------

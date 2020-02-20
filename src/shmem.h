@@ -59,12 +59,24 @@ void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe);
 /**
  * Copy data from the specified PE
  */
-void shmem_getmem(char *dest, const char *source, size_t nelems, int pe);
+void shmem_getmem(void *dest, const void *source, size_t nelems, int pe);
 
 /**
  * Copy data from a contiguous local data object to a data object on the specified PE
  */
-void shmem_putmem(char *dest, const char *source, size_t nelems, int pe);
+void shmem_putmem(void *dest, const void *source, size_t nelems, int pe);
+
+/**
+ * [Nonblocking]
+ * Copy data from the specified PE
+ */
+void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe);
+
+/**
+ * [Nonblocking]
+ * Copy data from a contiguous local data object to a data object on the specified PE
+ */
+void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe);
 
 // Collectives -------------------------------------------------------------------------------------
 
