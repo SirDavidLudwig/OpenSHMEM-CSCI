@@ -52,3 +52,8 @@ void shared_memory_free();
  * Malloc the given size of bytes on the heap
  */
 void* shared_memory_malloc(size_t bytes);
+
+/**
+ * Calculate the byte offset for the given variable relative to the start of the heap
+ */
+int shared_memory_offset(const void* source);

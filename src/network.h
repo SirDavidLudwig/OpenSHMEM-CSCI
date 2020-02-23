@@ -11,9 +11,9 @@
 /**
  * Create the communication thread
  */
-void comm_init(int pe);
+// void comm_init(int pe);
 
 /**
  * Cleanup and detsroy the communication thread
  */
-void comm_finalize();
+// void comm_finalize();

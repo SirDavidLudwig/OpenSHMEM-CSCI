@@ -68,12 +68,12 @@ void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe)
 
 void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	//
+	comm_get(dest, shared_memory_offset(source), nelems, pe);
 }
 
 void shmem_putmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	//
+	comm_put(shared_memory_offset(dest), source, nelems, pe);
 }
 
 void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe)
@@ -90,7 +90,8 @@ void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe)
 
 void shmem_barrier_all()
 {
-	//
+	// TEMPORARY
+	sleep(1);
 }
 
 void shmem_sync_all()

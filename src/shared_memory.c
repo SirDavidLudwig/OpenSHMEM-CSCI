@@ -94,3 +94,11 @@ void* shared_memory_malloc(size_t bytes)
 	// Return the calculated address
 	return addr;
 }
+
+/**
+ * Calculate the byte offset for the given variable relative to the start of the heap
+ */
+int shared_memory_offset(const void *source)
+{
+	return source - __sym_heap;
+}

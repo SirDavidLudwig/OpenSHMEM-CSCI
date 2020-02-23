@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "comm.h"
 #include "shared_memory.h"
 #include "network.h"
 #include "rte.h"

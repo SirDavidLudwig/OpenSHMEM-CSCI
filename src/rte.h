@@ -30,6 +30,11 @@ void rte_finalize();
 char *rte_pe_host(int pe);
 
 /**
+ * Determine if a process is local to this process
+ */
+int rte_is_local_to(int pe);
+
+/**
  * Get the current process' ID
  */
 int rte_my_pe();

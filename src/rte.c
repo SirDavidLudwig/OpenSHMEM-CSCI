@@ -39,9 +39,20 @@ void __rte_create_map()
 
 // Getters -----------------------------------------------------------------------------------------
 
+/**
+ * Get the hostname for the given process ID
+ */
 char* rte_pe_host(int pe)
 {
 	return __PE_HOST_MAP + pe*HOSTNAME_SIZE;
+}
+
+/**
+ * Determine if a process is local to this process
+ */
+int rte_is_local_to(int pe)
+{
+	return strcmp(rte_pe_host(__MY_PE), rte_pe_host(pe)) == 0;
 }
 
 /**
