@@ -126,7 +126,7 @@ int __connect_clients(int my_pe, int n_pes)
 	for (pe = ~my_pe & 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
-			continue;
+			// continue;
 		}
 		// Connect to the server via the command and data channels
 		__sockets[pe].fd_cmd = accept(sock_cmd->fd, (struct sockaddr *) &sock_cmd->address,
@@ -160,7 +160,7 @@ int __connect_servers(int my_pe, int n_pes)
 	for (int pe = ~my_pe & 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
-			continue;
+			// continue;
 		}
 
 		// Connect to the server via the command and data channels
