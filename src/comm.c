@@ -67,7 +67,7 @@ void comm_finalize()
 	}
 }
 
-// Communication Layer Interface -------------------------------------------------------------------
+// Interface ---------------------------------------------------------------------------------------
 
 /**
  * Get a value from another process
