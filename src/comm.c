@@ -1,6 +1,13 @@
 #include "comm.h"
 
+// Private Data Members ----------------------------------------------------------------------------
+
+/**
+ * Store all references to shared memory
+ */
 void **__shared_mem;
+
+// Internal Functions ------------------------------------------------------------------------------
 
 /**
  * Initialize shared memory communication
@@ -29,6 +36,8 @@ void __comm_init_shared_memory()
 	}
 }
 
+// Layer Management --------------------------------------------------------------------------------
+
 /**
  * Initialize the communication layer
  */
@@ -48,6 +57,8 @@ void comm_finalize()
 		}
 	}
 }
+
+// Communication Layer Interface -------------------------------------------------------------------
 
 /**
  * Get a value from another process
