@@ -11,8 +11,6 @@
 #include <pthread.h>
 #include <sched.h>
 
-#include <mpi.h>
-
 #define PORT    23500
 
 int main(void)
@@ -22,12 +20,12 @@ int main(void)
     int addrlen = sizeof(struct sockaddr_in);
     char buffer[32];
     char address[32] = "127.0.0.1";
-    
+
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
         return -1;
     }
-    
+
     memset(&server_address, 0, sizeof(server_address));
     server_address.sin_family = AF_INET;
     server_address.sin_addr.s_addr = inet_addr(address);
@@ -37,7 +35,7 @@ int main(void)
         perror("Could not connect to host: ");
         return -1;
     }
-    
+
     sprintf(buffer, "Hello");
     send(sockfd, buffer, strlen(buffer), 0);
     close(sockfd);

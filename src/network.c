@@ -76,11 +76,16 @@ struct socket_container* __create_server_socket(int n_pes, int port)
 /**
  * Create a client socket
  */
-int __create_client_socket(char *host, int port)
+int __create_client_socket(char *hostname, int port)
 {
 	int sockfd;
 	struct socket_container *sock = __create_socket(INADDR_ANY, port);
-	sock->address.sin_addr.s_addr = inet_addr(host);
+	struct hostent *host = gethostbyname(hostname);
+	char *address = inet_ntoa(*(struct in_addr *)host->h_addr_list[0]);
+
+	memcpy(&sock->address.sin_addr, host->h_addr_list[0], host->h_length);
+
+	printf("%d: Resolved %s to %s\n", rte_my_pe(), hostname, address);
 
 	if (connect(sock->fd, (struct sockaddr *) &sock->fd, sizeof(sock->fd)) < 0) {
 		perror("Could not connect to host");
@@ -122,7 +127,7 @@ int __connect_clients(int my_pe, int n_pes)
 	for (pe = ~my_pe & 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
-			continue;
+			// continue;
 		}
 		// Connect to the server via the command and data channels
 		__sockets[pe].fd_cmd = accept(sock_cmd->fd, (struct sockaddr *) &sock_cmd->address,
@@ -159,7 +164,7 @@ int __connect_servers(int my_pe, int n_pes)
 	for (int pe = ~my_pe & 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
-			continue;
+			// continue;
 		}
 
 		// Connect to the server via the command and data channels

@@ -11,8 +11,6 @@
 #include <pthread.h>
 #include <sched.h>
 
-#include <mpi.h>
-
 #define PORT    23500
 
 void * network_sr(void * args)
@@ -22,12 +20,12 @@ void * network_sr(void * args)
     int opt = 1;
     int addrlen = sizeof(struct sockaddr_in);
     char buffer[32];
-    
+
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
         perror("socket failed");
         return NULL;
     }
-    
+
     // optional
     if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR | SO_REUSEPORT, &opt, sizeof(opt))) {
         perror("sockopt failed");
@@ -49,12 +47,12 @@ void * network_sr(void * args)
     }
 
     for (;;) {
-        if ((new_socket = accept(sockfd, (struct sockaddr *) &server_address, 
+        if ((new_socket = accept(sockfd, (struct sockaddr *) &server_address,
                                          (socklen_t *) &addrlen)) < 0) {
             perror("accept failed: ");
             return NULL;
         }
-        
+
         read(new_socket, buffer, 32);
         printf("Client said: %s\n", buffer);
         close(new_socket);
@@ -68,7 +66,7 @@ int main(void)
     pthread_t network_thread;
 
     pthread_create(&network_thread, NULL, network_sr, NULL);
-    
+
     // do something useful?
     printf("main thread: I'm doing something useful!\n");
     pthread_join(network_thread, NULL);
