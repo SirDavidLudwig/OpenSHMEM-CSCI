@@ -47,7 +47,7 @@ int shared_memory_init(int pe)
 /**
  * Open a shared memory object
  */
-int	shared_memory_open(int pe)
+int shared_memory_open(int pe)
 {
 	int fd;
 	char name[255];
