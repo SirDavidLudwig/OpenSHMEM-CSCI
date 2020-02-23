@@ -15,7 +15,7 @@ int __N_PES;
 /**
  * The map of the processes
  */
-char *__PE_HOST_MAP;
+char **__PE_HOST_MAP;
 
 // Private Functions -------------------------------------------------------------------------------
 
@@ -24,7 +24,8 @@ char *__PE_HOST_MAP;
  */
 void __rte_create_map()
 {
-	char hostname[255];
+	char hosts[__N_PES * HOSTNAME_SIZE];
+	char hostname[HOSTNAME_SIZE];
 	int i, len;
 
 	// Allocate a hostname for each PE
@@ -34,17 +35,31 @@ void __rte_create_map()
 	MPI_Get_processor_name(hostname, &len);
 
 	// Let everyone know who is who and where they can be found
-	MPI_Allgather(hostname, HOSTNAME_SIZE, MPI_CHAR, __PE_HOST_MAP, HOSTNAME_SIZE, MPI_CHAR, MPI_COMM_WORLD);
+	MPI_Allgather(hostname, HOSTNAME_SIZE, MPI_CHAR, hosts, HOSTNAME_SIZE, MPI_CHAR, MPI_COMM_WORLD);
+
+	// Copy from 1D array to 2D array
+	for (i = 0; i < __N_PES; i++) {
+		__PE_HOST_MAP[i] = malloc(HOSTNAME_SIZE);
+		strcpy(__PE_HOST_MAP[i], hosts + i*HOSTNAME_SIZE);
+	}
 }
 
 // Getters -----------------------------------------------------------------------------------------
+
+/**
+ * Get the host map of all PEs
+ */
+char** rte_pe_hosts()
+{
+	return __PE_HOST_MAP;
+}
 
 /**
  * Get the hostname for the given process ID
  */
 char* rte_pe_host(int pe)
 {
-	return __PE_HOST_MAP + pe*HOSTNAME_SIZE;
+	return __PE_HOST_MAP[pe];
 }
 
 /**

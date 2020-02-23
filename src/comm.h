@@ -1,3 +1,6 @@
+#pragma once
+
+#include "network.h"
 #include "rte.h"
 #include "shared_memory.h"
 

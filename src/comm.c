@@ -36,6 +36,14 @@ void __comm_init_shared_memory()
 	}
 }
 
+/**
+ * Initialize the socket network
+ */
+void __comm_init_network()
+{
+	network_init();
+}
+
 // Layer Management --------------------------------------------------------------------------------
 
 /**
@@ -44,6 +52,7 @@ void __comm_init_shared_memory()
 void comm_init()
 {
 	__comm_init_shared_memory();
+	__comm_init_network();
 }
 
 /**

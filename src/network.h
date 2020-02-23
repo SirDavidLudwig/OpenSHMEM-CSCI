@@ -2,18 +2,36 @@
 
 #include <pthread.h>
 #include <netinet/in.h>
+#include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <sched.h>
 
+#include "rte.h"
 #include "shared_memory.h"
 
 #define PORT 31500
 
 /**
- * Create the communication thread
+ * The packet used for active messages
  */
-// void comm_init(int pe);
+struct packet
+{
+	char handler;
+	int origin;
+	long request_index;
+	long size;
+	long heap_offset;
+	char *data;
+}__attribute__((packed));
 
 /**
- * Cleanup and detsroy the communication thread
+ * Initialize the network thread
  */
-// void comm_finalize();
+void network_init();
+
+/**
+ * Finalize the network thread
+ */
+void network_finalize();

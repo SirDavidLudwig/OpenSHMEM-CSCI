@@ -25,6 +25,11 @@ void rte_finalize();
 // Getters -----------------------------------------------------------------------------------------
 
 /**
+ * Get the host map of all PEs
+ */
+char **rte_pe_hosts();
+
+/**
  * Get the hostname for the given process ID
  */
 char *rte_pe_host(int pe);
