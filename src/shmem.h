@@ -3,10 +3,11 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <mpi/mpi.h>
 
-#include "worker.h"
 #include "shared_memory.h"
+#include "network.h"
+#include "rte.h"
+#include "worker.h"
 
 // Library Setup/Querying --------------------------------------------------------------------------
 

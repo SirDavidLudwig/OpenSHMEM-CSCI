@@ -2,20 +2,16 @@
 
 // Library Setup/Querying --------------------------------------------------------------------------
 
-int MY_PE;
-int N_PES;
-
 void shmem_init()
 {
-	// MPI init
-	MPI_Init(NULL, NULL);
-
-	// PE information
-	MPI_Comm_rank(MPI_COMM_WORLD, &MY_PE);
-	MPI_Comm_size(MPI_COMM_WORLD, &N_PES);
+	// Initialize the runtime layer
+	rte_init();
 
 	// Malloc shared memory
-	shm_init(MY_PE);
+	shm_init(shmem_my_pe());
+
+	// Create the communication thread
+	comm_init(shmem_my_pe());
 
 	// Create worker thread
 	worker_init();
@@ -23,18 +19,20 @@ void shmem_init()
 
 int shmem_my_pe()
 {
-	return MY_PE;
+	return rte_my_pe();
 }
 
 int shmem_n_pes()
 {
-	return N_PES;
+	return rte_n_pes();
 }
 
 void shmem_finalize()
 {
 	// Shutdown the worker thread
 	worker_finalize();
+
+	comm_finalize();
 
 	// Free shared memory
 	shm_free();
@@ -108,5 +106,5 @@ void *shmem_malloc(size_t size)
 
 void shmem_quiet()
 {
-	//
+	// Wait for the worker thread to empty the completion queue
 }

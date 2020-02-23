@@ -1,6 +1,9 @@
 # Build directories
 build/
 
+# MPI hosts file
+mpd.hosts
+
 # Prerequisites
 *.d
 
