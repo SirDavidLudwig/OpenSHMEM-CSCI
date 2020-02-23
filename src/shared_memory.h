@@ -15,25 +15,40 @@
  */
 #define HEAP_SIZE 2 << 25 // 64 megabytes
 
+/**
+ * Used to identify my shared memory objects on the shared cluster
+ */
+#define USER_IDENTIFIER "dwl2x"
+
 // Error Codes -------------------------------------------------------------------------------------
 
-#define SHM_ERROR_NONE   0    // No error has occurred
-#define SHM_ERROR_CREATE 1    // Failed to create shared memory object
-#define SHM_ERROR_MAP    2    // Failed to allocate memory on shared object
+#define SHM_ERROR_NONE 0    // No error has occurred
+#define SHM_ERROR_OPEN 1    // Failed to create shared memory object
+#define SHM_ERROR_MAP  2    // Failed to allocate memory on shared object
 
 // Heap Management ---------------------------------------------------------------------------------
 
 /**
  * Create and map a shared memory object. Returns -1 upon error
  */
-int shm_init(int pe);
+int shared_memory_init(int pe);
+
+/**
+ * Open a shared memory object
+ */
+int shared_memory_open(int pe);
+
+/**
+ * Map a shared memory object into virtual memory space
+ */
+int shared_memory_map(int fd, void **ptr);
 
 /**
  * Clean up any shared memory objects
  */
-void shm_free();
+void shared_memory_free();
 
 /**
  * Malloc the given size of bytes on the heap
  */
-void* shm_malloc(size_t bytes);
+void* shared_memory_malloc(size_t bytes);

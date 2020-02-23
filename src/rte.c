@@ -35,14 +35,6 @@ void __rte_create_map()
 
 	// Let everyone know who is who and where they can be found
 	MPI_Allgather(hostname, HOSTNAME_SIZE, MPI_CHAR, __PE_HOST_MAP, HOSTNAME_SIZE, MPI_CHAR, MPI_COMM_WORLD);
-
-	// @TODO Remove later
-	printf("\nPE %d:\n", __MY_PE);
-	for (i = 0; i < __N_PES; i++) {
-		char *hostname = rte_pe_host(i);
-		printf("The hostname is %s\n", hostname);
-	}
-	printf("\n");
 }
 
 // Getters -----------------------------------------------------------------------------------------
@@ -71,20 +63,23 @@ int rte_n_pes()
 // Public Functions --------------------------------------------------------------------------------
 
 /**
- * Initialize the runtime layer
+ * Pre-initialization requirements
  */
-void rte_init()
+void rte_preinit()
 {
-	char hostname[255];
-	int len;
-
 	// MPI init
 	MPI_Init(NULL, NULL);
 
 	// PE information
 	MPI_Comm_rank(MPI_COMM_WORLD, &__MY_PE);
 	MPI_Comm_size(MPI_COMM_WORLD, &__N_PES);
+}
 
+/**
+ * Initialize the runtime layer
+ */
+void rte_init()
+{
 	// Create the node map
 	__rte_create_map();
 }

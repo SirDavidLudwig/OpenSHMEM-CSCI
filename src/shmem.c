@@ -4,11 +4,14 @@
 
 void shmem_init()
 {
-	// Initialize the runtime layer
-	rte_init();
+	// Pre-initialize the runtime layer
+	rte_preinit();
 
 	// Malloc shared memory
-	shm_init(shmem_my_pe());
+	shared_memory_init(shmem_my_pe());
+
+	// Initialize the runtime layer
+	rte_init();
 
 	// Create the communication thread
 	comm_init(shmem_my_pe());
@@ -35,10 +38,10 @@ void shmem_finalize()
 	comm_finalize();
 
 	// Free shared memory
-	shm_free();
+	shared_memory_free();
 
 	// Close MPI
-	MPI_Finalize();
+	rte_finalize();
 }
 
 // Remote Memory Access ----------------------------------------------------------------------------
@@ -99,7 +102,7 @@ void shmem_sync_all()
 
 void *shmem_malloc(size_t size)
 {
-	return shm_malloc(size);
+	return shared_memory_malloc(size);
 }
 
 // Memory Ordering ---------------------------------------------------------------------------------

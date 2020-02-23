@@ -8,6 +8,11 @@
 // Functions ---------------------------------------------------------------------------------------
 
 /**
+ * Pre-initialization requirements
+ */
+void rte_preinit();
+
+/**
  * Initialize the runtime layer
  */
 void rte_init();
