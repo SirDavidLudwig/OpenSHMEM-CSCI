@@ -81,13 +81,12 @@ int __create_client_socket(char *hostname, int port)
 	int sockfd;
 	struct socket_container *sock = __create_socket(INADDR_ANY, port);
 	struct hostent *host = gethostbyname(hostname);
-	char *address = inet_ntoa(*(struct in_addr *)host->h_addr_list[0]);
 
+	// Copy the resolved IP address into the socket address
 	memcpy(&sock->address.sin_addr, host->h_addr_list[0], host->h_length);
 
-	printf("%d: Resolved %s to %s\n", rte_my_pe(), hostname, address);
-
-	if (connect(sock->fd, (struct sockaddr *) &sock->fd, sizeof(sock->fd)) < 0) {
+	// Connect to the server
+	if (connect(sock->fd, (struct sockaddr *) &sock->address, sizeof(sock->address)) < 0) {
 		perror("Could not connect to host");
 		return 0;
 	}
@@ -127,15 +126,13 @@ int __connect_clients(int my_pe, int n_pes)
 	for (pe = ~my_pe & 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
-			// continue;
+			continue;
 		}
 		// Connect to the server via the command and data channels
 		__sockets[pe].fd_cmd = accept(sock_cmd->fd, (struct sockaddr *) &sock_cmd->address,
 			(socklen_t *) &addrlen);
 		__sockets[pe].fd_data = accept(sock_data->fd, (struct sockaddr *) &sock_data->address,
 			(socklen_t *) &addrlen);
-
-		printf("%d: %d has connected!\n", my_pe, pe);
 
 		// Check the socket results
 		if (__sockets[pe].fd_cmd == 0 || __sockets[pe].fd_data == 0) {
@@ -159,12 +156,11 @@ int __connect_clients(int my_pe, int n_pes)
  */
 int __connect_servers(int my_pe, int n_pes)
 {
-	printf("%d: Connecting to servers...", my_pe);
 	// Loop through corresponding remote PEs
 	for (int pe = ~my_pe & 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
-			// continue;
+			continue;
 		}
 
 		// Connect to the server via the command and data channels
@@ -214,14 +210,19 @@ void* network_thread(void *argptr)
 		return NULL;
 	}
 
-	// // Run the network thread
-	// __run();
+	/**
+	 * @todo remove later after more testing
+	 */
+	printf("%d: network ready\n", args->pe);
 
-	// // Close all connections
-	// for (i = 0; i < args->n_pes; i++) {
-	// 	close(__sockets[i].fd_cmd);
-	// 	close(__sockets[i].fd_data);
-	// }
+	// Run the network thread
+	__run();
+
+	// Close all connections
+	for (i = 0; i < args->n_pes; i++) {
+		close(__sockets[i].fd_cmd);
+		close(__sockets[i].fd_data);
+	}
 
 	// // Free memory
 	free(__sockets);
