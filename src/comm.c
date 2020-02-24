@@ -69,6 +69,9 @@ void __comm_init_threads()
 {
 	worker_init();
 	network_init();
+
+	// Wait for the network and worker threads to initialize
+	while (!network_is_ready() || !worker_is_ready());
 }
 
 /**
@@ -111,10 +114,11 @@ void comm_finalize()
  * @param bytes  The number of bytes to send
  * @param pe     The destination PE
  */
-void comm_get(void *dest, const int source, size_t bytes, int pe)
+void comm_get(void *dest, const int source, size_t bytes, int my_pe, int dest_pe)
 {
-	if (__shared_mem[pe]) {
-		memcpy(dest, __shared_mem[pe] + source, bytes);
+	// If the process is local, use shared memory
+	if (__shared_mem[dest_pe]) {
+		memcpy(dest, __shared_mem[dest_pe] + source, bytes);
 	}
 }
 
@@ -126,11 +130,13 @@ void comm_get(void *dest, const int source, size_t bytes, int pe)
  * @param bytes  The number of bytes to send
  * @param pe     The destination PE
  */
-void comm_put(int dest, const void *source, size_t bytes, int pe)
+void comm_put(int dest, const void *source, size_t bytes, int my_pe, int dest_pe)
 {
-	if (__shared_mem[pe]) {
-		memcpy(__shared_mem[pe] + dest, source, bytes);
-	}
+	// If the process is local, use shared memory
+	// if (__shared_mem[dest_pe]) {
+	// 	memcpy(__shared_mem[dest_pe] + dest, source, bytes);
+	// }
+	network_put(dest, source, bytes, my_pe, dest_pe);
 }
 
 /**

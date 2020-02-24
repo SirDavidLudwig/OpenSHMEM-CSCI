@@ -8,9 +8,19 @@
 pthread_t __network_thread_id;
 
 /**
- * indicate if the thread has been finalized
+ * Indicate if the network is ready
+ */
+int __network_ready;
+
+/**
+ * Indicate if the thread has been finalized
  */
 int __network_finalized;
+
+/**
+ * Keep a global request index
+ */
+long __network_request_index;
 
 // Private Structs ---------------------------------------------------------------------------------
 
@@ -189,6 +199,7 @@ int __connect_clients(int my_pe, int n_pes, int *n_conns)
  */
 int __connect_servers(int my_pe, int n_pes, int *n_conns)
 {
+	printf("%d: Connecting to servers...\n", my_pe);
 	// Loop through corresponding remote PEs
 	for (int pe = 0; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
@@ -272,10 +283,26 @@ void __disconnect(int n_pes, int n_conns)
  */
 void __network_receive(int my_pe, int n_conns)
 {
+	struct packet_header header;
+	ssize_t n_bytes;
 	for (int i = 0; i < n_conns; i++) {
+		// Attempt to receive a message. If no message is received, continue
+		if ((n_bytes = recv(__sockets[i]->fd_cmd, &header, sizeof(header), 0)) < 1) {
+			continue;
+		} else {
+			printf("Received from %d: num_bytes: %ld\n", header.origin, n_bytes);
+			if (header.size > 0) {
+				char *data = malloc(header.size);
+				if (recv(__sockets[i]->fd_cmd, data, header.size, 0) != header.size) {
+					perror("Corrupt packet received");
+				}
+				printf("Received data: %c\n", *data);
 
+				// The worker should be responsible of freeing the data
+				free(data);
+			}
+		}
 	}
-	__network_finalized = 1;
 }
 
 /**
@@ -291,6 +318,11 @@ void __network_respond(int my_pe, int n_conns)
  */
 void __network_run(int pe, int n_conns)
 {
+	// Mark the network as ready
+	__network_ready = 1;
+
+	printf("%d: Network running\n", pe);
+
 	while (__network_finalized == 0) {
 		// Receive any pending requests
 		__network_receive(pe, n_conns);
@@ -326,7 +358,7 @@ void* __network_thread(void *argptr)
 	return NULL;
 }
 
-// Interface ---------------------------------------------------------------------------------------
+// Layer Management --------------------------------------------------------------------------------
 
 /**
  * Initialize the network thread
@@ -336,8 +368,18 @@ void network_init()
 	struct network_args *args = malloc(sizeof(struct network_args));
 	args->pe = rte_my_pe();
 	args->n_pes = rte_n_pes();
+	__network_ready = 0;
 	__network_finalized = 0;
+	__network_request_index = 0;
 	pthread_create(&__network_thread_id, NULL, __network_thread, args);
+}
+
+/**
+ * Check if the network is ready for communication
+ */
+int network_is_ready()
+{
+	return __network_ready == 1;
 }
 
 /**
@@ -345,6 +387,40 @@ void network_init()
  */
 void network_finalize()
 {
-	// __network_finalized = 1;
+	__network_ready = 0;
+	__network_finalized = 1;
 	pthread_join(__network_thread_id, NULL);
+}
+
+// Interface ---------------------------------------------------------------------------------------
+
+/**
+ * Send a value to a remote process
+ *
+ * @param dest   The offset position relative to the beginning of the symmetric heap
+ * @param source A reference to the variable to send
+ * @param bytes  The number of bytes to send
+ * @param pe     The destination PE
+ */
+void network_put(int dest, const void *source, size_t bytes, int my_pe, int dest_pe)
+{
+	size_t packet_size = sizeof(struct packet) + bytes;
+	struct packet *p = malloc(packet_size);
+	p->handler = 20;
+	p->origin = my_pe;
+	p->request_index = __network_request_index++;
+	p->size = bytes;
+	p->heap_offset = dest;
+
+	// Copy the data into the packet
+	memcpy(p->data, source, bytes);
+
+	// printf("%d: Sending message of size %ld to %d:\nhandler: %d\norigin: %d\nrequest ID: %ld\nsize: %ld\noffset: %ld\n\n",
+	// 	my_pe, sizeof(*p), dest_pe, p->handler, p->origin, p->request_index, p->size, p->heap_offset);
+
+	// Send the packet to the remote PE
+	send(__socket_map[dest_pe].fd_cmd, p, packet_size, 0);
+
+	// Free the packet from memory
+	free(p);
 }

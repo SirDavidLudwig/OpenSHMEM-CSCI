@@ -27,7 +27,7 @@ void comm_finalize();
  * @param bytes  The number of bytes to send
  * @param pe     The destination PE
  */
-void comm_get(void *dest, const int source, size_t bytes, int pe);
+void comm_get(void *dest, const int source, size_t bytes, int my_pe, int dest_pe);
 
 /**
  * Send a value from another process
@@ -37,7 +37,7 @@ void comm_get(void *dest, const int source, size_t bytes, int pe);
  * @param bytes  The number of bytes to send
  * @param pe     The destination PE
  */
-void comm_put(int dest, const void *source, size_t bytes, int pe);
+void comm_put(int dest, const void *source, size_t bytes, int my_pe, int dest_pe);
 
 /**
  * [Blocking]
