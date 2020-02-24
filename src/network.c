@@ -10,7 +10,7 @@ pthread_t __network_thread_id;
 /**
  * indicate if the thread has been finalized
  */
-int __network_finalized = 0;
+int __network_finalized;
 
 // Private Structs ---------------------------------------------------------------------------------
 
@@ -40,8 +40,19 @@ struct socket_channels
 
 // Network Thread ----------------------------------------------------------------------------------
 
-struct socket_channels *__sockets;
+/**
+ * Used to quickly iterate over all existing sockets
+ */
+struct socket_channels **__sockets;
 
+/**
+ * Map a PE's ID to a socket
+ */
+struct socket_channels *__socket_map;
+
+/**
+ * Quickly create a TCP socket
+ */
 struct socket_container* __create_socket(in_addr_t host, int port)
 {
 	struct socket_container *sock = malloc(sizeof(struct socket_container));
@@ -117,7 +128,7 @@ int __create_client_socket(char *hostname, int port)
  * @todo Remove the continue comment
  * Wait for all clients to connect
  */
-int __connect_clients(int my_pe, int n_pes)
+int __connect_clients(int my_pe, int n_pes, int *n_conns)
 {
 	printf("%d: Waiting for clients...\n", my_pe);
 	struct socket_container *sock_cmd;
@@ -136,21 +147,29 @@ int __connect_clients(int my_pe, int n_pes)
 	}
 
 	// Loop through corresponding remote PEs
-	for (pe = ~my_pe & 1; pe < n_pes; pe += 2) {
+	for (pe = 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
 			// continue;
 		}
+
 		// Connect to the server via the command and data channels
-		__sockets[pe].fd_cmd = accept(sock_cmd->fd, (struct sockaddr *) &sock_cmd->address,
+		__socket_map[pe].fd_cmd = accept(sock_cmd->fd, (struct sockaddr *) &sock_cmd->address,
 			(socklen_t *) &addrlen);
-		__sockets[pe].fd_data = accept(sock_data->fd, (struct sockaddr *) &sock_data->address,
+		__socket_map[pe].fd_data = accept(sock_data->fd, (struct sockaddr *) &sock_data->address,
 			(socklen_t *) &addrlen);
 
 		// Check the socket results
-		if (__sockets[pe].fd_cmd == 0 || __sockets[pe].fd_data == 0) {
+		if (__socket_map[pe].fd_cmd == 0 || __socket_map[pe].fd_data == 0) {
 			return 0;
 		}
+
+		// Change the sockets to non-blocking
+		fcntl(__socket_map[pe].fd_cmd, F_SETFL, O_NONBLOCK);
+		fcntl(__socket_map[pe].fd_data, F_SETFL, O_NONBLOCK);
+
+		// Increment the number of connections
+		(*n_conns)++;
 	}
 
 	// Close the server sockets
@@ -168,23 +187,29 @@ int __connect_clients(int my_pe, int n_pes)
  * @todo Remove the continue comment
  * Connect to all other remote processes
  */
-int __connect_servers(int my_pe, int n_pes)
+int __connect_servers(int my_pe, int n_pes, int *n_conns)
 {
 	// Loop through corresponding remote PEs
-	for (int pe = ~my_pe & 1; pe < n_pes; pe += 2) {
+	for (int pe = 0; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
 			// continue;
 		}
 
 		// Connect to the server via the command and data channels
-		__sockets[pe].fd_cmd = __create_client_socket(rte_pe_host(pe), PORT + (pe << 1));
-		__sockets[pe].fd_data = __create_client_socket(rte_pe_host(pe), PORT + (pe << 1) + 1);
+		__socket_map[pe].fd_cmd = __create_client_socket(rte_pe_host(pe), PORT + (pe << 1));
+		__socket_map[pe].fd_data = __create_client_socket(rte_pe_host(pe), PORT + (pe << 1) + 1);
 
 		// Check the socket results
-		if (__sockets[pe].fd_cmd == 0 || __sockets[pe].fd_data == 0) {
+		if (__socket_map[pe].fd_cmd == 0 || __socket_map[pe].fd_data == 0) {
 			return 0;
 		}
+
+		// Change the sockets to non-blocking
+		fcntl(__socket_map[pe].fd_cmd, F_SETFL, O_NONBLOCK);
+		fcntl(__socket_map[pe].fd_data, F_SETFL, O_NONBLOCK);
+
+		(*n_conns)++;
 	}
 
 	return 1;
@@ -193,19 +218,85 @@ int __connect_servers(int my_pe, int n_pes)
 /**
  * Connect to all other remote PEs
  */
-int __connect(int pe, int n_pes)
+int __connect(int pe, int n_pes, int *n_conns)
 {
-	// Connect the PEs. Odds connect to events first
+	int result;
+	int i, j;
+
+	// Create the list of sockets by PE
+	__socket_map = malloc(n_pes * sizeof(struct socket_channels));
+	memset(__socket_map, 0, n_pes * sizeof(struct socket_channels));
+
+	// Connect the PEs. Odd PEs connect to even PEs
+	*n_conns = 0;
 	if (pe & 1) {
-		return __connect_servers(pe, n_pes) && __connect_clients(pe, n_pes);
+		result = __connect_servers(pe, n_pes, n_conns);
+	} else {
+		result = __connect_clients(pe, n_pes, n_conns);
 	}
-	return __connect_clients(pe, n_pes) && __connect_servers(pe, n_pes);
+
+	// Exit if an error occurred
+	if (result == 0) {
+		return -1;
+	}
+
+	// Map valid socket references for quick iteration
+	__sockets = malloc(*n_conns * sizeof(struct socket_channels*));
+	for (i = j = 0; i < n_pes; i++) {
+		if (__socket_map[i].fd_cmd != 0) {
+			__sockets[j++] = &__socket_map[i];
+		}
+	}
 }
 
-void __run()
+/**
+ * Disconnect all other remote PEs
+ */
+void __disconnect(int n_pes, int n_conns)
 {
-	while (!__network_finalized) {
+	int i;
 
+	// Close all connections
+	for (i = 0; i < n_pes; i++) {
+		close(__socket_map[i].fd_cmd);
+		close(__socket_map[i].fd_data);
+	}
+
+	// Free memory
+	free(__sockets);
+	free(__socket_map);
+}
+
+/**
+ * Handle any incoming requests
+ */
+void __network_receive(int my_pe, int n_conns)
+{
+	for (int i = 0; i < n_conns; i++) {
+
+	}
+	__network_finalized = 1;
+}
+
+/**
+ * Fulfill any completed requests
+ */
+void __network_respond(int my_pe, int n_conns)
+{
+
+}
+
+/**
+ * Handle the network communication
+ */
+void __network_run(int pe, int n_conns)
+{
+	while (__network_finalized == 0) {
+		// Receive any pending requests
+		__network_receive(pe, n_conns);
+
+		// Complete any finished requests
+		__network_respond(pe, n_conns);
 	}
 }
 
@@ -215,33 +306,21 @@ void __run()
 void* __network_thread(void *argptr)
 {
 	struct network_args *args = (struct network_args*)argptr;
-	int i;
-
-	// Create the list of sockets by PE
-	__sockets = malloc(args->n_pes * sizeof(struct socket_channels));
-	memset(__sockets, 0, args->n_pes * sizeof(struct socket_channels));
+	int i, n_conns;
 
 	// Connect to all other remote PEs
-	if (__connect(args->pe, args->n_pes) == 0) {
+	if (__connect(args->pe, args->n_pes, &n_conns) == -1) {
+		perror("Failed to connect sockets");
 		return NULL;
 	}
 
-	/**
-	 * @todo remove later after more testing
-	 */
-	printf("%d: network ready\n", args->pe);
-
 	// Run the network thread
-	__run();
+	__network_run(args->pe, n_conns);
 
-	// Close all connections
-	for (i = 0; i < args->n_pes; i++) {
-		close(__sockets[i].fd_cmd);
-		close(__sockets[i].fd_data);
-	}
+	// Disconnect all connections
+	__disconnect(args->n_pes, n_conns);
 
 	// Free memory
-	free(__sockets);
 	free(argptr);
 
 	return NULL;
@@ -266,6 +345,6 @@ void network_init()
  */
 void network_finalize()
 {
-	__network_finalized = 1;
+	// __network_finalized = 1;
 	pthread_join(__network_thread_id, NULL);
 }

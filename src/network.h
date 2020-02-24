@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <sched.h>
+#include <fcntl.h>
 
 #include "rte.h"
 #include "shared_memory.h"
