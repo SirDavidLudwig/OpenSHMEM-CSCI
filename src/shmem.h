@@ -90,7 +90,7 @@ void shmem_barrier_all();
 
 /**
  * [Collective]
- * Suspends PE execution untill all other PEs arrive at the barrier
+ * Barrier and flush all current requests
  */
 void shmem_sync_all();
 

@@ -1,8 +1,20 @@
 #include "network.h"
 
-pthread_t __thread_id;
+// Private Data Members ----------------------------------------------------------------------------
 
-struct comm_args
+/**
+ * A reference to the network thread
+ */
+pthread_t __network_thread_id;
+
+/**
+ * indicate if the thread has been finalized
+ */
+int __network_finalized = 0;
+
+// Private Structs ---------------------------------------------------------------------------------
+
+struct network_args
 {
 	int pe;
 	int n_pes;
@@ -102,6 +114,7 @@ int __create_client_socket(char *hostname, int port)
 }
 
 /**
+ * @todo Remove the continue comment
  * Wait for all clients to connect
  */
 int __connect_clients(int my_pe, int n_pes)
@@ -126,7 +139,7 @@ int __connect_clients(int my_pe, int n_pes)
 	for (pe = ~my_pe & 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
-			continue;
+			// continue;
 		}
 		// Connect to the server via the command and data channels
 		__sockets[pe].fd_cmd = accept(sock_cmd->fd, (struct sockaddr *) &sock_cmd->address,
@@ -152,6 +165,7 @@ int __connect_clients(int my_pe, int n_pes)
 }
 
 /**
+ * @todo Remove the continue comment
  * Connect to all other remote processes
  */
 int __connect_servers(int my_pe, int n_pes)
@@ -160,7 +174,7 @@ int __connect_servers(int my_pe, int n_pes)
 	for (int pe = ~my_pe & 1; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
 		if (rte_is_local_to(pe)) {
-			continue;
+			// continue;
 		}
 
 		// Connect to the server via the command and data channels
@@ -190,15 +204,17 @@ int __connect(int pe, int n_pes)
 
 void __run()
 {
+	while (!__network_finalized) {
 
+	}
 }
 
 /**
  * The main network thread
  */
-void* network_thread(void *argptr)
+void* __network_thread(void *argptr)
 {
-	struct comm_args *args = (struct comm_args*)argptr;
+	struct network_args *args = (struct network_args*)argptr;
 	int i;
 
 	// Create the list of sockets by PE
@@ -224,24 +240,25 @@ void* network_thread(void *argptr)
 		close(__sockets[i].fd_data);
 	}
 
-	// // Free memory
+	// Free memory
 	free(__sockets);
 	free(argptr);
 
 	return NULL;
 }
 
-// Interface Functions -----------------------------------------------------------------------------
+// Interface ---------------------------------------------------------------------------------------
 
 /**
  * Initialize the network thread
  */
 void network_init()
 {
-	struct comm_args *args = malloc(sizeof(struct comm_args));
+	struct network_args *args = malloc(sizeof(struct network_args));
 	args->pe = rte_my_pe();
 	args->n_pes = rte_n_pes();
-	pthread_create(&__thread_id, NULL, network_thread, args);
+	__network_finalized = 0;
+	pthread_create(&__network_thread_id, NULL, __network_thread, args);
 }
 
 /**
@@ -249,5 +266,6 @@ void network_init()
  */
 void network_finalize()
 {
-	pthread_join(__thread_id, NULL);
+	__network_finalized = 1;
+	pthread_join(__network_thread_id, NULL);
 }

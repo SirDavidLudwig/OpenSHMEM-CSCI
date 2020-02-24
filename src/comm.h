@@ -3,6 +3,7 @@
 #include "network.h"
 #include "rte.h"
 #include "shared_memory.h"
+#include "worker.h"
 
 // Layer Management --------------------------------------------------------------------------------
 
@@ -37,3 +38,9 @@ void comm_get(void *dest, const int source, size_t bytes, int pe);
  * @param pe     The destination PE
  */
 void comm_put(int dest, const void *source, size_t bytes, int pe);
+
+/**
+ * [Blocking]
+ * Wait for the worker thread to flush requests
+ */
+void comm_flush();

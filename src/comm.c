@@ -7,6 +7,16 @@
  */
 void **__shared_mem;
 
+/**
+ * A reference to the network thread
+ */
+pthread_t *__thread_network;
+
+/**
+ * A reference to the worker thread
+ */
+pthread_t *__thread_worker;
+
 // Internal Functions ------------------------------------------------------------------------------
 
 /**
@@ -37,11 +47,37 @@ void __comm_init_shared_memory()
 }
 
 /**
- * Initialize the socket network
+ * Close any mapped shared memory
  */
-void __comm_init_network()
+void __comm_finalize_shared_memory()
 {
+	// Unmap shared memory
+	for (int i = 0; i < rte_n_pes(); i++) {
+		if (__shared_mem[i] != 0) {
+			shared_memory_free(i);
+		}
+	}
+
+	// Free the used memory
+	free(__shared_mem);
+}
+
+/**
+ * Create the network and worker threads
+ */
+void __comm_init_threads()
+{
+	worker_init();
 	network_init();
+}
+
+/**
+ * Finalize the network and worker threads
+ */
+void __comm_finalize_threads()
+{
+	network_finalize();
+	worker_finalize();
 }
 
 // Layer Management --------------------------------------------------------------------------------
@@ -52,7 +88,7 @@ void __comm_init_network()
 void comm_init()
 {
 	__comm_init_shared_memory();
-	__comm_init_network();
+	__comm_init_threads();
 }
 
 /**
@@ -60,11 +96,9 @@ void comm_init()
  */
 void comm_finalize()
 {
-	for (int i = 0; i < rte_n_pes(); i++) {
-		if (__shared_mem[i] != 0) {
-			shared_memory_free(i);
-		}
-	}
+	// Wait for threads to finish
+	__comm_finalize_threads();
+	__comm_finalize_shared_memory();
 }
 
 // Interface ---------------------------------------------------------------------------------------
@@ -97,4 +131,13 @@ void comm_put(int dest, const void *source, size_t bytes, int pe)
 	if (__shared_mem[pe]) {
 		memcpy(__shared_mem[pe] + dest, source, bytes);
 	}
+}
+
+/**
+ * [Blocking]
+ * Wait for the worker thread to flush requests
+ */
+void comm_flush()
+{
+	//
 }
