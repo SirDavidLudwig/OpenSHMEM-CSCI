@@ -17,10 +17,31 @@ int __worker_finalized;
  */
 int __worker_ready;
 
+void *__task_queue_head;
+void *__task_queue_tail;
+
+void *__completed_queue_head;
+void *__completed_queue_tail;
+
 // Thread ------------------------------------------------------------------------------------------
+
+/**
+ * Run the worker thread
+ */
+void __worker_run()
+{
+
+}
 
 void* __worker_thread(void* args)
 {
+	__task_queue_head = NULL;
+	__task_queue_tail = NULL;
+	__completed_queue_head = NULL;
+	__completed_queue_tail = NULL;
+
+	__worker_run();
+
 	// Set the worker ready
 	__worker_ready = 1;
 	return 0;

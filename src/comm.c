@@ -7,16 +7,6 @@
  */
 void **__shared_mem;
 
-/**
- * A reference to the network thread
- */
-pthread_t *__thread_network;
-
-/**
- * A reference to the worker thread
- */
-pthread_t *__thread_worker;
-
 // Internal Functions ------------------------------------------------------------------------------
 
 /**
@@ -67,8 +57,8 @@ void __comm_finalize_shared_memory()
  */
 void __comm_init_threads()
 {
-	worker_init();
 	network_init();
+	worker_init();
 
 	// Wait for the network and worker threads to initialize
 	while (!network_is_ready() || !worker_is_ready());

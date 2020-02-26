@@ -15,18 +15,6 @@
 #define PORT 31500
 
 /**
- * The packet header for active messages
- */
-struct packet_header
-{
-	char handler;
-	int origin;
-	long request_index;
-	size_t size;
-	long heap_offset;
-} __attribute__((packed));
-
-/**
  * The complete packet for active messages
  */
 struct packet

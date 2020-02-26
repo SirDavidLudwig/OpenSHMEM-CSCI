@@ -7,36 +7,6 @@
 
 // Private Data Members ----------------------------------------------------------------------------
 
-/**
- * The pSync array used for collective operations
- */
-long *__pSync;
-
-// Internal Functions ------------------------------------------------------------------------------
-
-/**
- * Initialize the pSync array used for collective operations
- */
-void __shmem_init_psync()
-{
-	__pSync = shared_memory_malloc(shmem_n_pes() * sizeof(long));
-	for (int i = 0; i < shmem_n_pes(); i++) {
-		__pSync[i] = SHMEM_SYNC_VALUE;
-	}
-}
-
-/**
- * Post initialization tasks
- */
-void __shmem_post_init()
-{
-	// pSync arrays for barriers
-	__shmem_init_psync();
-
-	// Wait for all processes to finish
-	shmem_sync_all();
-}
-
 // Library Setup/Querying --------------------------------------------------------------------------
 
 /**
@@ -57,8 +27,8 @@ void shmem_init()
 	// Create the communication thread
 	comm_init();
 
-	// Post initialization
-	__shmem_post_init();
+	// Wait for all processes to initialize
+	shmem_sync_all();
 }
 
 /**

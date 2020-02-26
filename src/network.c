@@ -150,11 +150,14 @@ int __connect_clients(int my_pe, int n_pes, int *n_conns)
 	sock_cmd = __create_server_socket(n_pes, PORT + (my_pe << 1));
 	sock_data = __create_server_socket(n_pes, PORT + (my_pe << 1) + 1);
 
-	// // Check the created sockets
+	// Check the created sockets
 	if (sock_cmd == NULL || sock_data == NULL) {
 		perror("Failed to create server sockets\n");
 		return 0;
 	}
+
+	// Use a RTE barrier to ensure that socket servers are created
+	rte_barrier();
 
 	// Loop through corresponding remote PEs
 	for (pe = 1; pe < n_pes; pe += 2) {
@@ -200,6 +203,10 @@ int __connect_clients(int my_pe, int n_pes, int *n_conns)
 int __connect_servers(int my_pe, int n_pes, int *n_conns)
 {
 	printf("%d: Connecting to servers...\n", my_pe);
+
+	// Use a RTE barrier to ensure that socket servers are created
+	rte_barrier();
+
 	// Loop through corresponding remote PEs
 	for (int pe = 0; pe < n_pes; pe += 2) {
 		// No need for sockets with local processes
@@ -283,7 +290,7 @@ void __disconnect(int n_pes, int n_conns)
  */
 void __network_receive(int my_pe, int n_conns)
 {
-	struct packet_header header;
+	struct packet header;
 	ssize_t n_bytes;
 	for (int i = 0; i < n_conns; i++) {
 		// Attempt to receive a message. If no message is received, continue
@@ -329,6 +336,9 @@ void __network_run(int pe, int n_conns)
 
 		// Complete any finished requests
 		__network_respond(pe, n_conns);
+
+		// Done processing this iteration
+		pthread_yield();
 	}
 }
 

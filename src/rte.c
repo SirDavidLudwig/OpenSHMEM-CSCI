@@ -44,49 +44,7 @@ void __rte_create_map()
 	}
 }
 
-// Getters -----------------------------------------------------------------------------------------
-
-/**
- * Get the host map of all PEs
- */
-char** rte_pe_hosts()
-{
-	return __PE_HOST_MAP;
-}
-
-/**
- * Get the hostname for the given process ID
- */
-char* rte_pe_host(int pe)
-{
-	return __PE_HOST_MAP[pe];
-}
-
-/**
- * Determine if a process is local to this process
- */
-int rte_is_local_to(int pe)
-{
-	return strcmp(rte_pe_host(__MY_PE), rte_pe_host(pe)) == 0;
-}
-
-/**
- * Get the current process' ID
- */
-int rte_my_pe()
-{
-	return __MY_PE;
-}
-
-/**
- * Get the number of processes
- */
-int rte_n_pes()
-{
-	return __N_PES;
-}
-
-// Public Functions --------------------------------------------------------------------------------
+// Layer Management --------------------------------------------------------------------------------
 
 /**
  * Pre-initialization requirements
@@ -116,4 +74,54 @@ void rte_init()
 void rte_finalize()
 {
 	MPI_Finalize();
+}
+
+// Interface ---------------------------------------------------------------------------------------
+
+/**
+ * Perform a barrier at the RTE layer
+ */
+void rte_barrier()
+{
+	MPI_Barrier(MPI_COMM_WORLD);
+}
+
+/**
+ * Get the host map of all PEs
+ */
+char **rte_pe_hosts()
+{
+	return __PE_HOST_MAP;
+}
+
+/**
+ * Get the hostname for the given process ID
+ */
+char *rte_pe_host(int pe)
+{
+	return __PE_HOST_MAP[pe];
+}
+
+/**
+ * Determine if a process is local to this process
+ */
+int rte_is_local_to(int pe)
+{
+	return strcmp(rte_pe_host(__MY_PE), rte_pe_host(pe)) == 0;
+}
+
+/**
+ * Get the current process' ID
+ */
+int rte_my_pe()
+{
+	return __MY_PE;
+}
+
+/**
+ * Get the number of processes
+ */
+int rte_n_pes()
+{
+	return __N_PES;
 }
