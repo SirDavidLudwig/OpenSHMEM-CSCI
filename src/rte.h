@@ -8,11 +8,6 @@
 // Layer Management --------------------------------------------------------------------------------
 
 /**
- * Pre-initialization requirements
- */
-void rte_preinit();
-
-/**
  * Initialize the runtime layer
  */
 void rte_init();
@@ -32,17 +27,12 @@ void rte_barrier();
 /**
  * Get the host map of all PEs
  */
-char **rte_pe_hosts();
-
-/**
- * Get the hostname for the given process ID
- */
-char *rte_pe_host(int pe);
+char** rte_pe_hosts();
 
 /**
  * Determine if a process is local to this process
  */
-int rte_is_local_to(int pe);
+// int rte_is_local_to(int pe);
 
 /**
  * Get the current process' ID

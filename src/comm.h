@@ -9,8 +9,12 @@
 
 /**
  * Initialize the communication layer
+ *
+ * @param pe          The current PE's ID
+ * @param n_pes       The number of PEs
+ * @param pe_host_map A map of all PE's hostnames by PE ID
  */
-void comm_init();
+void comm_init(int pe, int n_pes, char **pe_host_map);
 
 /**
  * Finalize the communication layer
@@ -18,6 +22,21 @@ void comm_init();
 void comm_finalize();
 
 // Interface ---------------------------------------------------------------------------------------
+
+/**
+ * Determine if the given PE is local to the current PE
+ *
+ * @param pe The other PE to check
+ */
+int comm_is_local(int pe);
+
+/**
+ * Determine if a PE is local to another PE
+ *
+ * @param pe1 The first PE's ID
+ * @param pe2 The other PE's ID
+ */
+int comm_are_local(int pe1, int pe2);
 
 /**
  * Get a value from another process

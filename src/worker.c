@@ -25,6 +25,11 @@ void *__completed_queue_tail;
 
 // Thread ------------------------------------------------------------------------------------------
 
+void __dequeue()
+{
+
+}
+
 /**
  * Run the worker thread
  */
@@ -35,8 +40,9 @@ void __worker_run()
 
 void* __worker_thread(void* args)
 {
-	__task_queue_head = NULL;
-	__task_queue_tail = NULL;
+	// Initialize the queues
+	__task_queue_head      = NULL;
+	__task_queue_tail      = NULL;
 	__completed_queue_head = NULL;
 	__completed_queue_tail = NULL;
 
@@ -83,6 +89,14 @@ void worker_finalize()
  * Insert a request into the queue
  */
 void enqueue()
+{
+
+}
+
+/**
+ * Dequeue a completed task
+ */
+void dequeue()
 {
 
 }

@@ -3,9 +3,24 @@
 // Private Data Members ----------------------------------------------------------------------------
 
 /**
+ * A reference to the current PE
+ */
+static int __pe;
+
+/**
+ * A reference to the number of PEs
+ */
+static int __n_pes;
+
+/**
+ * A map of all PE's hostnames, indexed by PE ID
+ */
+static char **__pe_hosts;
+
+/**
  * Store all references to shared memory
  */
-void **__shared_mem;
+static void **__shared_mem;
 
 // Internal Functions ------------------------------------------------------------------------------
 
@@ -15,21 +30,20 @@ void **__shared_mem;
 void __comm_init_shared_memory()
 {
 	int fd;
-	int n_pes = rte_n_pes();
 
 	// Allocate the shared memory pointers
-	__shared_mem = malloc(n_pes * sizeof(void*));
-	memset(__shared_mem, 0, n_pes * sizeof(void*));
+	__shared_mem = malloc(__n_pes * sizeof(void*));
+	memset(__shared_mem, 0, __n_pes * sizeof(void*));
 
 	// Find local processes and map their shared memory
-	for (int i = 0; i < n_pes; i++) {
-		if (rte_is_local_to(i)) {
+	for (int i = 0; i < __n_pes; i++) {
+		if (comm_is_local(i)) {
 			if (SHM_ERROR_OPEN == (fd = shared_memory_open(i))) {
-				printf("%d: Failed to open shared memory for PE %d\n", rte_my_pe(), i);
+				printf("%d: Failed to open shared memory for PE %d\n", __pe, i);
 				return;
 			}
 			if (SHM_ERROR_MAP == shared_memory_map(fd, &__shared_mem[i])) {
-				printf("%d: Failed to map shared memory for PE %d\n", rte_my_pe(), i);
+				printf("%d: Failed to map shared memory for PE %d\n", __pe, i);
 				return;
 			}
 		}
@@ -42,7 +56,7 @@ void __comm_init_shared_memory()
 void __comm_finalize_shared_memory()
 {
 	// Unmap shared memory
-	for (int i = 0; i < rte_n_pes(); i++) {
+	for (int i = 0; i < __n_pes; i++) {
 		if (__shared_mem[i] != 0) {
 			shared_memory_free(i);
 		}
@@ -77,9 +91,14 @@ void __comm_finalize_threads()
 
 /**
  * Initialize the communication layer
+ *
+ * @param pe          The current PE's ID
+ * @param n_pes       The number of PEs
+ * @param pe_host_map A map of all PE's hostnames by PE ID
  */
-void comm_init()
+void comm_init(int pe, int n_pes, char **pe_host_map)
 {
+	__pe_hosts = pe_host_map;
 	__comm_init_shared_memory();
 	__comm_init_threads();
 }
@@ -95,6 +114,22 @@ void comm_finalize()
 }
 
 // Interface ---------------------------------------------------------------------------------------
+
+/**
+ * Determine if the given PE is local to the current PE
+ */
+int comm_is_local(int pe)
+{
+	return comm_are_local(__pe, pe);
+}
+
+/**
+ * Determine if a PE is local to another PE
+ */
+int comm_are_local(int pe1, int pe2)
+{
+	return strcmp(__pe_hosts[pe1], __pe_hosts[pe2]) == 0;
+}
 
 /**
  * Get a value from another process

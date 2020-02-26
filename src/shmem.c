@@ -15,20 +15,17 @@
  */
 void shmem_init()
 {
-	// Pre-initialize the runtime layer
-	rte_preinit();
-
-	// Malloc shared memory
-	shared_memory_init(shmem_my_pe());
-
 	// Initialize the runtime layer
 	rte_init();
 
-	// Create the communication thread
-	comm_init();
+	// Initialize the shared memory layer
+	shared_memory_init(shmem_my_pe());
+
+	// Create the communication layer
+	comm_init(shmem_my_pe(), shmem_n_pes(), rte_pe_hosts());
 
 	// Wait for all processes to initialize
-	shmem_sync_all();
+	// shmem_sync_all();
 }
 
 /**
@@ -54,13 +51,13 @@ int shmem_n_pes()
 void shmem_finalize()
 {
 	// Wait for other processes
-	shmem_sync_all();
+	// shmem_sync_all();
 
 	// Close tho communication layer
-	comm_finalize();
+	// comm_finalize();
 
 	// Free shared memory
-	shared_memory_free();
+	// shared_memory_free();
 
 	// Close MPI
 	rte_finalize();
@@ -145,7 +142,7 @@ void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe)
  */
 void shmem_barrier_all()
 {
-	MPI_Barrier(MPI_COMM_WORLD);
+	rte_barrier();
 	// int pe = shmem_my_pe();
 	// int n_pes = shmem_n_pes();
 
