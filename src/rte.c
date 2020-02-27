@@ -12,7 +12,34 @@ static int __MY_PE;
  */
 static int __N_PES;
 
+/**
+ * Map all hosts by PE ID
+ */
+static char **__PE_HOSTS;
+
 // Private Functions -------------------------------------------------------------------------------
+
+static void __rte_map_pes()
+{
+	char hosts[__N_PES * HOSTNAME_SIZE];
+	char hostname[HOSTNAME_SIZE];
+	int i, len;
+
+	// Allocate a hostname for each PE
+	__PE_HOSTS = malloc(__N_PES * sizeof(char *));
+
+	// Get the hostname of the process
+	rte_hostname(hostname, &len);
+
+	// Let everyone know who is who and where they can be found
+	MPI_Allgather(hostname, HOSTNAME_SIZE, MPI_CHAR, hosts, HOSTNAME_SIZE, MPI_CHAR, MPI_COMM_WORLD);
+
+	// Copy from 1D array to 2D array
+	for (i = 0; i < __N_PES; i++) {
+		__PE_HOSTS[i] = malloc(HOSTNAME_SIZE);
+		strcpy(__PE_HOSTS[i], hosts + i * HOSTNAME_SIZE);
+	}
+}
 
 // Layer Management --------------------------------------------------------------------------------
 
@@ -27,6 +54,9 @@ void rte_init()
 	// PE information
 	MPI_Comm_rank(MPI_COMM_WORLD, &__MY_PE);
 	MPI_Comm_size(MPI_COMM_WORLD, &__N_PES);
+
+	// Create the host map of the PEs
+	__rte_map_pes();
 }
 
 /**
@@ -59,40 +89,12 @@ void rte_hostname(char *hostname, int *len)
 }
 
 /**
- * Create a map of all processes
+ * Create a host map of all processes
  */
 char** rte_pe_hosts()
 {
-	char **pe_map;
-	char hosts[__N_PES * HOSTNAME_SIZE];
-	char hostname[HOSTNAME_SIZE];
-	int i, len;
-
-	// Allocate a hostname for each PE
-	*pe_map = malloc(__N_PES * sizeof(char*));
-
-	// Get the hostname of the process
-	rte_hostname(hostname, &len);
-
-	// Let everyone know who is who and where they can be found
-	MPI_Allgather(hostname, HOSTNAME_SIZE, MPI_CHAR, hosts, HOSTNAME_SIZE, MPI_CHAR, MPI_COMM_WORLD);
-
-	// Copy from 1D array to 2D array
-	for (i = 0; i < __N_PES; i++) {
-		pe_map[i] = malloc(HOSTNAME_SIZE);
-		strcpy(pe_map[i], hosts + i*HOSTNAME_SIZE);
-	}
-
-	return pe_map;
+	return __PE_HOSTS;
 }
-
-/**
- * Determine if a process is local to this process
- */
-// int rte_is_local_to(int pe)
-// {
-// 	return strcmp(rte_pe_host(__MY_PE), rte_pe_host(pe)) == 0;
-// }
 
 /**
  * Get the current process' ID

@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -28,11 +30,6 @@ void rte_barrier();
  * Get the host map of all PEs
  */
 char** rte_pe_hosts();
-
-/**
- * Determine if a process is local to this process
- */
-// int rte_is_local_to(int pe);
 
 /**
  * Get the current process' ID

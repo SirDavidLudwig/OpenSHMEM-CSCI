@@ -5,23 +5,23 @@
 /**
  * A reference to the worker thread
  */
-pthread_t __worker_thread_id;
+static pthread_t __thread_id;
 
 /**
  * Indicate if the thread has been finalized
  */
-int __worker_finalized;
+static int __finalized;
 
 /**
  * Indicate if the worker thread is ready
  */
-int __worker_ready;
+static int __ready;
 
-void *__task_queue_head;
-void *__task_queue_tail;
+static void *__task_queue_head;
+static void *__task_queue_tail;
 
-void *__completed_queue_head;
-void *__completed_queue_tail;
+static void *__completed_queue_head;
+static void *__completed_queue_tail;
 
 // Thread ------------------------------------------------------------------------------------------
 
@@ -49,7 +49,7 @@ void* __worker_thread(void* args)
 	__worker_run();
 
 	// Set the worker ready
-	__worker_ready = 1;
+	__ready = 1;
 	return 0;
 }
 
@@ -60,9 +60,9 @@ void* __worker_thread(void* args)
  */
 void worker_init()
 {
-	__worker_ready = 0;
-	__worker_finalized = 0;
-	pthread_create(&__worker_thread_id, NULL, __worker_thread, NULL);
+	__ready = 0;
+	__finalized = 0;
+	pthread_create(&__thread_id, NULL, __worker_thread, NULL);
 }
 
 /**
@@ -70,7 +70,7 @@ void worker_init()
  */
 int worker_is_ready()
 {
-	return __worker_ready == 1;
+	return __ready == 1;
 }
 
 /**
@@ -78,9 +78,9 @@ int worker_is_ready()
  */
 void worker_finalize()
 {
-	__worker_ready = 0;
-	__worker_finalized = 1;
-	pthread_join(__worker_thread_id, NULL);
+	__ready = 0;
+	__finalized = 1;
+	pthread_join(__thread_id, NULL);
 }
 
 // Interface ---------------------------------------------------------------------------------------

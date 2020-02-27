@@ -98,9 +98,21 @@ void __comm_finalize_threads()
  */
 void comm_init(int pe, int n_pes, char **pe_host_map)
 {
+	__pe = pe;
+	__n_pes = n_pes;
 	__pe_hosts = pe_host_map;
+
+	// Connect the local PEs via shared memory
 	__comm_init_shared_memory();
 	__comm_init_threads();
+}
+
+/**
+ * Wire up the PE communication layer
+ */
+void comm_wireup()
+{
+
 }
 
 /**

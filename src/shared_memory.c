@@ -5,12 +5,12 @@
 /**
  * The symmetric heap
  */
-void* __sym_heap = 0;
+static void* __sym_heap = 0;
 
 /**
  * A pointer to the end of the symmetric heap
  */
-int __heap_ptr;
+static int __heap_ptr;
 
 // Heap Management ---------------------------------------------------------------------------------
 

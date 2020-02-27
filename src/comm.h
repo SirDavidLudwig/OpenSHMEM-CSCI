@@ -17,6 +17,11 @@
 void comm_init(int pe, int n_pes, char **pe_host_map);
 
 /**
+ * Wire up the PE communication layer
+ */
+void comm_wireup();
+
+/**
  * Finalize the communication layer
  */
 void comm_finalize();

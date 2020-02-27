@@ -21,11 +21,17 @@ void shmem_init()
 	// Initialize the shared memory layer
 	shared_memory_init(shmem_my_pe());
 
-	// Create the communication layer
+	// Prepare comm layer for wire up
 	comm_init(shmem_my_pe(), shmem_n_pes(), rte_pe_hosts());
 
-	// Wait for all processes to initialize
-	// shmem_sync_all();
+	// Wait for all PEs to prepare their comm layer
+	rte_barrier();
+
+	// Wireup all PE communication
+	comm_wireup();
+
+	// Wait for all processes to finish
+	shmem_sync_all();
 }
 
 /**

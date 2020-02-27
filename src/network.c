@@ -5,22 +5,22 @@
 /**
  * A reference to the network thread
  */
-pthread_t __network_thread_id;
+static pthread_t __thread_id;
 
 /**
  * Indicate if the network is ready
  */
-int __network_ready;
+static int __ready;
 
 /**
  * Indicate if the thread has been finalized
  */
-int __network_finalized;
+static int __finalized;
 
 /**
  * Keep a global request index
  */
-long __network_request_index;
+static long __request_index;
 
 // Private Structs ---------------------------------------------------------------------------------
 
@@ -155,9 +155,6 @@ int __connect_clients(int my_pe, int n_pes, int *n_conns)
 		perror("Failed to create server sockets\n");
 		return 0;
 	}
-
-	// Use a RTE barrier to ensure that socket servers are created
-	rte_barrier();
 
 	// Loop through corresponding remote PEs
 	for (pe = 1; pe < n_pes; pe += 2) {
@@ -326,11 +323,11 @@ void __network_respond(int my_pe, int n_conns)
 void __network_run(int pe, int n_conns)
 {
 	// Mark the network as ready
-	__network_ready = 1;
+	__ready = 1;
 
 	printf("%d: Network running\n", pe);
 
-	while (__network_finalized == 0) {
+	while (__finalized == 0) {
 		// Receive any pending requests
 		__network_receive(pe, n_conns);
 
@@ -378,10 +375,10 @@ void network_init()
 	struct network_args *args = malloc(sizeof(struct network_args));
 	args->pe = rte_my_pe();
 	args->n_pes = rte_n_pes();
-	__network_ready = 0;
-	__network_finalized = 0;
-	__network_request_index = 0;
-	pthread_create(&__network_thread_id, NULL, __network_thread, args);
+	__ready = 0;
+	__finalized = 0;
+	__request_index = 0;
+	pthread_create(&__thread_id, NULL, __network_thread, args);
 }
 
 /**
@@ -389,7 +386,7 @@ void network_init()
  */
 int network_is_ready()
 {
-	return __network_ready == 1;
+	return __ready == 1;
 }
 
 /**
@@ -397,9 +394,9 @@ int network_is_ready()
  */
 void network_finalize()
 {
-	__network_ready = 0;
-	__network_finalized = 1;
-	pthread_join(__network_thread_id, NULL);
+	__ready = 0;
+	__finalized = 1;
+	pthread_join(__thread_id, NULL);
 }
 
 // Interface ---------------------------------------------------------------------------------------
@@ -418,7 +415,7 @@ void network_put(int dest, const void *source, size_t bytes, int my_pe, int dest
 	struct packet *p = malloc(packet_size);
 	p->handler = 20;
 	p->origin = my_pe;
-	p->request_index = __network_request_index++;
+	p->request_index = __request_index++;
 	p->size = bytes;
 	p->heap_offset = dest;
 
