@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <unistd.h>
-
-#include "../src/shmem.h"
+#include <shmem.h>
 
 int main()
 {
@@ -9,8 +8,10 @@ int main()
 
 	shmem_init();
 
-	// int my_pe = shmem_my_pe();
-	// int n_pes = shmem_n_pes();
+	int my_pe = shmem_my_pe();
+	int n_pes = shmem_n_pes();
+
+	printf("My PE is %d, and there are %d PEs\n", my_pe, n_pes);
 
 	// char *a = shmem_malloc(sizeof(char));
 	// char *b = shmem_malloc(sizeof(char));

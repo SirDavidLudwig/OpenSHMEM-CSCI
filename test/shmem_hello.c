@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include "../src/shmem.h"
+#include <shmem.h>
 
 int main() {
     int pe, size;
