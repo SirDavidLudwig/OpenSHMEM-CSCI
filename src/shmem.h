@@ -1,14 +1,11 @@
 #pragma once
 
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
+// Definitions -------------------------------------------------------------------------------------
 
-#include "comm.h"
-#include "shared_memory.h"
-#include "network.h"
-#include "rte.h"
-#include "worker.h"
+/**
+ * The default value for the pSync array
+ */
+#define SHMEM_SYNC_VALUE -1L
 
 // Library Setup/Querying --------------------------------------------------------------------------
 

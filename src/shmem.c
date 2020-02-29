@@ -1,9 +1,10 @@
 #include "shmem.h"
 
-/**
- * The default value for the pSync array
- */
-#define SHMEM_SYNC_VALUE -1L
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+#include "rte/rte.h"
 
 // Private Data Members ----------------------------------------------------------------------------
 
@@ -18,17 +19,17 @@ void shmem_init()
 	// Initialize the runtime layer
 	rte_init();
 
-	// Initialize the shared memory layer
-	shared_memory_init(shmem_my_pe());
-
 	// Prepare comm layer for wire up
-	comm_init(shmem_my_pe(), shmem_n_pes(), rte_pe_hosts());
+	// comm_init(shmem_my_pe(), shmem_n_pes());
 
 	// Wait for all PEs to prepare their comm layer
-	rte_barrier();
+	// rte_barrier();
 
 	// Wireup all PE communication
-	comm_wireup();
+	// comm_wireup(rte_pe_hosts());
+
+	// Start the communication threads
+	// comm_start();
 
 	// Wait for all processes to finish
 	shmem_sync_all();
@@ -110,7 +111,7 @@ void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe)
  */
 void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	comm_get(dest, shared_memory_offset(source), nelems, shmem_my_pe(), pe);
+	// comm_get(dest, shared_memory_offset(source), nelems, shmem_my_pe(), pe);
 }
 
 /**
@@ -118,7 +119,7 @@ void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
  */
 void shmem_putmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	comm_put(shared_memory_offset(dest), source, nelems, shmem_my_pe(), pe);
+	// comm_put(shared_memory_offset(dest), source, nelems, shmem_my_pe(), pe);
 }
 
 /**
@@ -179,9 +180,9 @@ void shmem_sync_all()
  */
 void *shmem_malloc(size_t size)
 {
-	void* addr = shared_memory_malloc(size);
-	shmem_barrier_all();
-	return addr;
+	// void* addr = shared_memory_malloc(size);
+	// shmem_barrier_all();
+	// return addr;
 }
 
 // Memory Ordering ---------------------------------------------------------------------------------
@@ -191,5 +192,5 @@ void *shmem_malloc(size_t size)
  */
 void shmem_quiet()
 {
-	comm_flush();
+	// comm_flush();
 }
