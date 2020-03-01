@@ -31,7 +31,6 @@ void rte_init()
 	// PE information
 	MPI_Comm_rank(MPI_COMM_WORLD, &__MY_PE);
 	MPI_Comm_size(MPI_COMM_WORLD, &__N_PES);
-	printf("MPI RTE initialized\n");
 }
 
 /**
@@ -47,11 +46,31 @@ void rte_finalize()
 
 /**
  * [Collective]
- * Perform an all-gather operation
+ * Get a list of all hostnames mapped by PE
  */
-void rte_all_gather(void *sendbuf, int sendsize, void *recvbuf, int recvsize)
+char** rte_hosts()
 {
-	MPI_Allgather(sendbuf, sendsize, MPI_BYTE, recvbuf, recvsize, MPI_BYTE, MPI_COMM_WORLD);
+	char **hostmap;
+	char hosts[rte_n_pes() * HOSTNAME_LEN];
+	char hostname[HOSTNAME_LEN];
+	int i, len;
+
+	// Allocate a hostname for each PE
+	hostmap = malloc(rte_n_pes() * sizeof(char *));
+
+	// Get the hostname of the process
+	rte_hostname(hostname, &len);
+
+	// Let everyone know who is who and where they can be found
+	MPI_Allgather(hostname, HOSTNAME_LEN, MPI_CHAR, hosts, HOSTNAME_LEN, MPI_CHAR, MPI_COMM_WORLD);
+
+	// Copy from 1D array to 2D array
+	for (i = 0; i < rte_n_pes(); i++) {
+		hostmap[i] = malloc(HOSTNAME_LEN);
+		strcpy(hostmap[i], hosts + i * HOSTNAME_LEN);
+	}
+
+	return hostmap;
 }
 
 /**

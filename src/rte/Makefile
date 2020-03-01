@@ -5,7 +5,7 @@ OUT_DIR = ../../build/obj/rte
 RTE_FRAMEWORKS := $(sort $(patsubst %/,%,$(dir $(wildcard */rte.c))))
 
 # Make all RTE implementations
-all: $(RTE_FRAMEWORKS)
+all: $(RTE_FRAMEWORKS) util
 
 # Implementation Building --------------------------------------------------------------------------
 

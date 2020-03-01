@@ -2,11 +2,9 @@
 
 #include <stddef.h>
 #include <stdio.h>
-#include <stdlib.h>
 
+#include "comm.h"
 #include "rte/rte.h"
-
-// Private Data Members ----------------------------------------------------------------------------
 
 // Library Setup/Querying --------------------------------------------------------------------------
 
@@ -20,10 +18,7 @@ void shmem_init()
 	rte_init();
 
 	// Prepare comm layer for wire up
-	// comm_init(shmem_my_pe(), shmem_n_pes());
-
-	// Wait for all PEs to prepare their comm layer
-	// rte_barrier();
+	comm_init(shmem_my_pe(), shmem_n_pes());
 
 	// Wireup all PE communication
 	// comm_wireup(rte_pe_hosts());
@@ -58,7 +53,7 @@ int shmem_n_pes()
 void shmem_finalize()
 {
 	// Wait for other processes
-	// shmem_sync_all();
+	shmem_sync_all();
 
 	// Close tho communication layer
 	// comm_finalize();

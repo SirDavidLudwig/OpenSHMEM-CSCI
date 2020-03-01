@@ -1,6 +1,9 @@
 #pragma once
 
-#include "rte_util.h"
+/**
+ * The maximum hostname length
+ */
+#define HOSTNAME_LEN 256
 
 // Layer Management --------------------------------------------------------------------------------
 
@@ -20,15 +23,15 @@ void rte_finalize();
 
 /**
  * [Collective]
- * Perform an all-gather operation
- */
-void rte_all_gather(void *sendbuf, int sendsize, void *recvbuf, int recvsize);
-
-/**
- * [Collective]
  * Perform a barrier at the RTE layer
  */
 void rte_barrier();
+
+/**
+ * [Collective]
+ * Get a list of all hostnames mapped by PE
+ */
+char** rte_hosts();
 
 // Accessors ---------------------------------------------------------------------------------------
 
