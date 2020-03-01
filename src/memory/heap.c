@@ -55,11 +55,13 @@ void heap_finalize(struct heap_t *heap)
 {
 	struct block_t *block, *next;
 
+	// Free all memory blocks
 	for (block = heap->head; block != NULL; block = next) {
 		next = block->next;
 		free(block);
 	}
 
+	// Free the heap object
 	free(heap);
 }
 
