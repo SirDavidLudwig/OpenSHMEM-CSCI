@@ -15,6 +15,12 @@ BUILD_DIR := ./build
 # Where the built object files are
 OBJ_DIR := ../build/obj
 
+# The object files to link with
+OBJ_FILES := $(OBJ_DIR)/*.o \
+             $(OBJ_DIR)/comm/*.o \
+             $(OBJ_DIR)/memory/*.o \
+			 $(OBJ_DIR)/rte/$(RTE_FRAMEWORK)/*.o
+
 # Locate all test files available
 TEST_NAMES := $(patsubst %.c,%,$(wildcard *.c))
 
@@ -26,6 +32,6 @@ clean:
 $(TEST_NAMES):
 	@mkdir -p $(BUILD_DIR)
 #	$(CC) $@.c $(INC) $(LIB) -lopenshmem -o $(BUILD_DIR)/$@
-	$(CC) $@.c $(INC) $(OBJ_DIR)/*.o $(OBJ_DIR)/memory/*.o $(OBJ_DIR)/rte/$(RTE_FRAMEWORK)/*.o -o $(BUILD_DIR)/$@ -lrt -pthread
+	$(CC) $@.c $(INC) $(OBJ_FILES) -o $(BUILD_DIR)/$@ -lrt -pthread
 
 .PHONY: all clean

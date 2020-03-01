@@ -19,7 +19,7 @@ OBJ_DIR := $(BUILD_DIR)/obj
 
 # Makefile Targets ---------------------------------------------------------------------------------
 
-all: openshmem test/shmem_heap
+all: openshmem test/shmem_test
 
 # OpenSHMEM ----------------------------------------------------------------------------------------
 
@@ -31,19 +31,21 @@ libopenshmem: openshmem
 	    -o $(BUILD_DIR)/lib/$@.so
 
 
-openshmem: comm memory network rte src/comm.c src/shmem.c
+openshmem: comm memory network rte src/shmem.c
 	@mkdir -p $(BUILD_DIR)/include
 	cp $(SOURCE_DIR)/shmem.h $(BUILD_DIR)/include
-	gcc -fPIC -c src/comm.c -o build/obj/comm.o
 	gcc -fPIC -c src/shmem.c -o build/obj/shmem.o
 
-comm:
+comm: $(SOURCE_DIR)/comm/*.c
+	@mkdir -p $(OBJ_DIR)/$@
+	gcc -fPIC -c src/$@/comm.c -o build/obj/$@/comm.o
 
 memory: $(SOURCE_DIR)/memory/*.c
-	@mkdir -p $(OBJ_DIR)/memory
-	gcc -fPIC -c src/memory/heap.c -o build/obj/memory/heap.o
-	gcc -fPIC -c src/memory/hashmap.c -o build/obj/memory/hashmap.o
-	gcc -fPIC -c src/memory/shared_mem.c -o build/obj/memory/shared_mem.o
+	@mkdir -p $(OBJ_DIR)/$@
+	gcc -fPIC -c src/$@/heap.c -o build/obj/$@/heap.o
+	gcc -fPIC -c src/$@/hashmap.c -o build/obj/$@/hashmap.o
+	gcc -fPIC -c src/$@/shared_heap.c -o build/obj/$@/shared_heap.o
+	gcc -fPIC -c src/$@/shared_mem.c -o build/obj/$@/shared_mem.o
 
 network:
 	@mkdir -p $(OBJ_DIR)/network

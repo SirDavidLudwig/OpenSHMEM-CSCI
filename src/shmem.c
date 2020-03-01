@@ -3,7 +3,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include "comm.h"
+#include "comm/comm.h"
 #include "memory/heap.h"
 #include "rte/rte.h"
 
@@ -176,7 +176,20 @@ void shmem_sync_all()
  */
 void* shmem_malloc(size_t size)
 {
-	return heap_malloc(heap, size);
+	struct heap_t *heap;
+	void *address;
+
+	// Get the symmetric heap
+	heap = comm_symmetric_heap();
+
+	// Allocate the requested memory
+	address = heap_malloc(heap, size);
+
+	// Wait on other processes
+	shmem_sync_all();
+
+	// Return the allocated address
+	return address;
 }
 
 /**
@@ -185,7 +198,16 @@ void* shmem_malloc(size_t size)
  */
 void shmem_free(void *ptr)
 {
-	return heap_free(heap, ptr);
+	struct heap_t *heap;
+
+	// Get the symmetric heap
+	heap = comm_symmetric_heap();
+
+	// Free the given address
+	heap_free(heap, ptr);
+
+	// Wait an other processes
+	shmem_sync_all();
 }
 
 // Memory Ordering ---------------------------------------------------------------------------------
