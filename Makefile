@@ -19,7 +19,7 @@ OBJ_DIR := $(BUILD_DIR)/obj
 
 # Makefile Targets ---------------------------------------------------------------------------------
 
-all: openshmem test/shmem_test
+all: openshmem test/shmem_heap
 
 # OpenSHMEM ----------------------------------------------------------------------------------------
 
@@ -42,6 +42,7 @@ comm:
 memory: $(SOURCE_DIR)/memory/*.c
 	@mkdir -p $(OBJ_DIR)/memory
 	gcc -fPIC -c src/memory/heap.c -o build/obj/memory/heap.o
+	gcc -fPIC -c src/memory/hashmap.c -o build/obj/memory/hashmap.o
 	gcc -fPIC -c src/memory/shared_mem.c -o build/obj/memory/shared_mem.o
 
 network:

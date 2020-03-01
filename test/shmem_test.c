@@ -13,9 +13,20 @@ int main()
 
 	printf("My PE is %d, and there are %d PEs\n", my_pe, n_pes);
 
-	// char *a = shmem_malloc(sizeof(char));
+	char *a = shmem_malloc(sizeof(char));
+	int *c = shmem_malloc(sizeof(int));
+	char *b = shmem_malloc(2000*sizeof(char));
 	// char *b = shmem_malloc(sizeof(char));
-	// char *c = shmem_malloc(sizeof(char));
+	// char *d = shmem_malloc();
+
+	*a = 'h';
+	*c = 42;
+
+	printf("%p %p %c %i\n", a, c, *a, *c);
+	// *b = '9';
+
+	// printf("%d: %p %p %p\n", my_pe, (void *)a, (void *)c, (void *)b);
+	// printf("%d: a: %c, c: %d, b: %d\n", my_pe, *a, *c, *b);
 
 	// *a = -1;
 	// *b = -1;

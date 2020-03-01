@@ -4,6 +4,7 @@
 #include <stdio.h>
 
 #include "comm.h"
+#include "memory/heap.h"
 #include "rte/rte.h"
 
 // Library Setup/Querying --------------------------------------------------------------------------
@@ -173,11 +174,18 @@ void shmem_sync_all()
  * [Collective]
  * Returns a pointer to a block of at least `size` bytes suitably aligned for any use
  */
-void *shmem_malloc(size_t size)
+void* shmem_malloc(size_t size)
 {
-	// void* addr = shared_memory_malloc(size);
-	// shmem_barrier_all();
-	// return addr;
+	return heap_malloc(heap, size);
+}
+
+/**
+ * [Collective]
+ * Free up a block of memory
+ */
+void shmem_free(void *ptr)
+{
+	return heap_free(heap, ptr);
 }
 
 // Memory Ordering ---------------------------------------------------------------------------------

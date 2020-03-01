@@ -1,5 +1,7 @@
 #include "heap.h"
 
+#define NUM_BUCKETS 1023
+
 // Macros ------------------------------------------------------------------------------------------
 
 /**
@@ -10,7 +12,7 @@
 /**
  * Calculate the amount of space available after a block
  */
-#define BLOCK_GAP(a,b) ((size_t) (((a->next == NULL) ? BLOCK_END(b) : a->next) - BLOCK_END(a)))
+#define BLOCK_GAP(a,b) ((size_t) (((a->next == NULL) ? BLOCK_END(b) : a->next->ptr) - BLOCK_END(a)))
 
 /**
  * Calculate the next block for `next-fit`
@@ -25,19 +27,40 @@
  * @param region  The starting address for the memory region
  * @param size The size of the memory region in bytes
  */
-struct heap_t* heap_init(void *region, size_t size)
+struct heap_t *heap_init(void *region, size_t size)
 {
 	struct heap_t *heap;
 
 	// Create the heap structure
 	heap = malloc(sizeof(struct heap_t));
-	heap->tail = NULL;
-	heap->head = NULL;
+	heap->block_map = hashmap_init(NUM_BUCKETS);
 	heap->ptr = region;
 	heap->size = size;
 
+	// Create a dummy node
+	heap->tail = heap->head = malloc(sizeof(struct block_t));
+	heap->tail->ptr = heap->ptr;
+	heap->tail->size = 0;
+
 	// Return the heap object
 	return heap;
+}
+
+/**
+ * Destroy and free a heap structure
+ *
+ * @param heap The heap to free
+ */
+void heap_finalize(struct heap_t *heap)
+{
+	struct block_t *block, *next;
+
+	for (block = heap->head; block != NULL; block = next) {
+		next = block->next;
+		free(block);
+	}
+
+	free(heap);
 }
 
 /**
@@ -53,25 +76,24 @@ void* heap_malloc(struct heap_t *heap, size_t bytes)
 	// Allocate the block of memory
 	block = malloc(sizeof(struct block_t));
 	block->size = bytes;
-	block->next = NULL;
 
-	// Get the head
-	head = heap->head;
-	if (head == NULL) {
-		block->ptr = heap->ptr;
-		heap->tail = block;
-	} else {
-		// Find a block that we can insert into
-		while (BLOCK_GAP(head, heap) < bytes) {
-			if (NEXT_BLOCK(head, heap) == heap->head) {
-				perror("Unable to malloc onto heap");
-				return NULL;
-			}
+	// Find a block that we can insert into
+	for (head = heap->head; BLOCK_GAP(head, heap) < bytes;) {
+		if (NEXT_BLOCK(head, heap) == heap->head) {
+			return NULL;
 		}
-		block->ptr = BLOCK_END(head);
-		block->next = head->next;
-		head->next = block;
 	}
+
+	// Update the next block's hashmap info
+	if (head->next) {
+		hashmap_set(heap->block_map, head->next, block);
+	}
+
+	// Insert the block into memory and the hashmap
+	block->ptr = BLOCK_END(head);
+	block->next = head->next;
+	head->next = block;
+	hashmap_set(heap->block_map, block->ptr, head);
 
 	// Update the head
 	heap->head = block;
@@ -81,12 +103,25 @@ void* heap_malloc(struct heap_t *heap, size_t bytes)
 }
 
 /**
- * @TODO
  * Free memory on a heap
+ *
+ * @param heap The heap reference
+ * @param ptr  The address within the heap
  */
 void heap_free(struct heap_t *heap, void *ptr)
 {
-	//
+	struct block_t *block, *freed;
+
+	// Find the memory block, exit if not found
+	if (NULL == (block = hashmap_get(heap->block_map, ptr))) {
+		return;
+	}
+
+	// Remove the block
+	freed = block->next;
+	block->next = freed->next;
+
+	free(freed);
 }
 
 /**

@@ -101,6 +101,12 @@ void shmem_sync_all();
  */
 void* shmem_malloc(size_t size);
 
+/**
+ * [Collective]
+ * Free up a block of memory
+ */
+void shmem_free(void *ptr);
+
 // Memory Ordering ---------------------------------------------------------------------------------
 
 /**
