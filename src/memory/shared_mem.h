@@ -50,7 +50,8 @@ int shared_mem_map(int fd, size_t size, void **region);
 /**
  * Clean up any shared memory objects
  *
+ * @param key    The name of the shared memory object
  * @param region The shared memory region to unmap
  * @param size   The size of the shared memory object
  */
-void shared_mem_unmap(void *region, size_t size);
+void shared_mem_unmap(char *key, void *region, size_t size);

@@ -12,7 +12,7 @@ int shared_mem_open(char *key, size_t size, void **region)
 {
 	int fd;
 
-	// Create and allocate the shared memory object
+	// Open the shared memory object
 	if (-1 == (fd = shm_open(key, O_CREAT | O_RDWR, 0666))) {
 		perror("Open shared memory failed\n");
 		return -1;
@@ -40,13 +40,23 @@ int shared_mem_create(char *key, size_t size, void **region)
 {
 	int fd;
 
-	// Open and map the region
-	if (-1 == (fd = shared_mem_open(key, size, region))) {
+	// Open the shared memory object
+	if (-1 == (fd = shm_open(key, O_CREAT | O_RDWR, 0666))) {
+		perror("Open shared memory failed\n");
 		return -1;
 	}
 
 	// Allocate the space
 	ftruncate(fd, size);
+
+	// Map the shared memory object to the virtual address space
+	if (-1 == shared_mem_map(fd, size, region)) {
+		perror("Failed to map memory object\n");
+		return -1;
+	}
+
+	// Zero-out the heap
+	memset(*region, 0, size);
 
 	// Return the file descriptor
 	return fd;
@@ -72,8 +82,11 @@ int shared_mem_map(int fd, size_t size, void **region)
  * @param region The shared memory region to unmap
  * @param size   The size of the shared memory object
  */
-void shared_mem_unmap(void *region, size_t size)
+void shared_mem_unmap(char *key, void *region, size_t size)
 {
-	// Unmap the symmetric heap from memory
+	// Unmap the memory region
 	munmap(region, size);
+
+	// Unlink the shared memory
+	shm_unlink(key);
 }

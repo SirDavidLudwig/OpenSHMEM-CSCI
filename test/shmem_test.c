@@ -14,54 +14,21 @@ int main()
 	printf("My PE is %d, and there are %d PEs\n", my_pe, n_pes);
 
 	char *a = shmem_malloc(sizeof(char));
-	int *c = shmem_malloc(sizeof(int));
-	char *b = shmem_malloc(2000*sizeof(char));
-	// char *b = shmem_malloc(sizeof(char));
-	// char *d = shmem_malloc();
+	char *b = shmem_malloc(sizeof(char));
 
-	*a = 'h';
-	*c = 42;
+	*a = *b = 0;
 
-	printf("%p %p %c %i\n", a, c, *a, *c);
-	// *b = '9';
+	if (my_pe == 0) {
+		*a = 10;
+		shmem_putmem(b, a, sizeof(char), 1);
+		while (*b == 0);
+		printf("The result is %d\n", *b);
 
-	// printf("%d: %p %p %p\n", my_pe, (void *)a, (void *)c, (void *)b);
-	// printf("%d: a: %c, c: %d, b: %d\n", my_pe, *a, *c, *b);
-
-	// *a = -1;
-	// *b = -1;
-
-	// shmem_barrier_all();
-
-	// if (my_pe == 0) {
-	// 	m = 'X';
-	// 	*c = '7';
-
-	// 	// Wait for PE 1 to set a
-	// 	while (*a == -1);
-	// 	printf("The value of a is %c\n", *a);
-
-	// 	// Put the value of m to b on PE 1
-	// 	shmem_put(b, &m, 1, 1);
-
-	// 	// Get the value of c on PE 1
-	// 	shmem_get(&m, c, 1, 1);
-	// } else {
-	// 	m = 'Z';
-	// 	*c = '3';
-
-	// 	// Put the value of m to a on PE 0
-	// 	shmem_put(a, &m, 1, 0);
-
-	// 	// Wait for PE 0 to set b
-	// 	while (*b == -1);
-	// 	printf("The value of b is %c\n", *b);
-
-	// 	// Get the value of c on PE 0
-	// 	shmem_get(&m, c, 1, 0);
-	// }
-
-	// printf("%d: The value of c is %c\n", my_pe, m);
+	} else {
+		while(*b == 0);
+		*a = *b*2;
+		shmem_putmem(b, a, sizeof(char), 0);
+	}
 
 	shmem_finalize();
 

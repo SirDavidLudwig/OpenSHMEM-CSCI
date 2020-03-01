@@ -4,8 +4,18 @@
 #include <stdio.h>
 
 #include "comm/comm.h"
-#include "memory/heap.h"
+#include "memory/shared_heap.h"
 #include "rte/rte.h"
+
+/**
+ * The current PE's ID
+ */
+static int MY_PE;
+
+/**
+ * The total number of PEs
+ */
+static int N_PES;
 
 // Library Setup/Querying --------------------------------------------------------------------------
 
@@ -15,17 +25,27 @@
  */
 void shmem_init()
 {
+	char **hostmap;
+
 	// Initialize the runtime layer
 	rte_init();
+
+	// Fetch initial information
+	MY_PE = rte_my_pe();
+	N_PES = rte_n_pes();
+	hostmap = rte_hosts();
 
 	// Prepare comm layer for wire up
 	comm_init(shmem_my_pe(), shmem_n_pes());
 
-	// Wireup all PE communication
-	// comm_wireup(rte_pe_hosts());
+	// Wire up all PE communication
+	comm_wireup(hostmap);
 
 	// Start the communication threads
 	// comm_start();
+
+	// Free the unused information
+	free(hostmap);
 
 	// Wait for all processes to finish
 	shmem_sync_all();
@@ -36,7 +56,7 @@ void shmem_init()
  */
 int shmem_my_pe()
 {
-	return rte_my_pe();
+	return MY_PE;
 }
 
 /**
@@ -44,7 +64,7 @@ int shmem_my_pe()
  */
 int shmem_n_pes()
 {
-	return rte_n_pes();
+	return N_PES;
 }
 
 /**
@@ -107,7 +127,7 @@ void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe)
  */
 void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	// comm_get(dest, shared_memory_offset(source), nelems, shmem_my_pe(), pe);
+	comm_get(dest, source, nelems, pe);
 }
 
 /**
@@ -115,7 +135,7 @@ void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
  */
 void shmem_putmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	// comm_put(shared_memory_offset(dest), source, nelems, shmem_my_pe(), pe);
+	comm_put(dest, source, nelems, pe);
 }
 
 /**
@@ -176,14 +196,14 @@ void shmem_sync_all()
  */
 void* shmem_malloc(size_t size)
 {
-	struct heap_t *heap;
+	struct shared_heap_t *heap;
 	void *address;
 
 	// Get the symmetric heap
 	heap = comm_symmetric_heap();
 
 	// Allocate the requested memory
-	address = heap_malloc(heap, size);
+	address = shared_heap_malloc(heap, size);
 
 	// Wait on other processes
 	shmem_sync_all();
@@ -198,13 +218,13 @@ void* shmem_malloc(size_t size)
  */
 void shmem_free(void *ptr)
 {
-	struct heap_t *heap;
+	struct shared_heap_t *heap;
 
 	// Get the symmetric heap
 	heap = comm_symmetric_heap();
 
 	// Free the given address
-	heap_free(heap, ptr);
+	shared_heap_free(heap, ptr);
 
 	// Wait an other processes
 	shmem_sync_all();
@@ -217,5 +237,5 @@ void shmem_free(void *ptr)
  */
 void shmem_quiet()
 {
-	// comm_flush();
+	comm_flush();
 }

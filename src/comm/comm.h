@@ -1,6 +1,9 @@
 #pragma once
 
-#include "../memory/shared_heap.h"
+#include "comm_local.h"
+#include "comm_remote.h"
+
+// Layer Management --------------------------------------------------------------------------------
 
 /**
  * Initialize the communication layer
@@ -17,6 +20,34 @@ void comm_finalize();
  */
 void comm_wireup(char **hostmap);
 
+// Communication Methods ---------------------------------------------------------------------------
+
+/**
+ * Get a value from another process
+ *
+ * @param dest   The destination to store the result
+ * @param source The remote variable to get from
+ * @param bytes  The number of bytes to send
+ * @param pe     The destination PE
+ */
+void comm_get(void *dest, const void* source, size_t bytes, int pe);
+
+/**
+ * Send a value from another process
+ *
+ * @param dest   The destination to store the result
+ * @param source The local variable to send
+ * @param bytes  The number of bytes to send
+ * @param pe     The destination PE
+ */
+void comm_put(void *dest, const void *source, size_t bytes, int pe);
+
+/**
+ * [Blocking]
+ * Wait for the worker thread to flush requests
+ */
+void comm_flush();
+
 // Accessors ---------------------------------------------------------------------------------------
 
 /**
@@ -24,4 +55,12 @@ void comm_wireup(char **hostmap);
  *
  * @return A reference to the symmetric heap
  */
-struct heap_t* comm_symmetric_heap();
+struct shared_heap_t* comm_symmetric_heap();
+
+/**
+ * Determine if the given PE is local to the current PE
+ *
+ * @param  pe The other PE to check
+ * @return 1 if the PE is local, otherwise 0
+ */
+int comm_is_local(int pe);

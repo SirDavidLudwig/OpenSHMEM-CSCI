@@ -1,5 +1,7 @@
 #pragma once
 
+#include <string.h>
+
 /**
  * The maximum hostname length
  */

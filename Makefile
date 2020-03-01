@@ -39,6 +39,8 @@ openshmem: comm memory network rte src/shmem.c
 comm: $(SOURCE_DIR)/comm/*.c
 	@mkdir -p $(OBJ_DIR)/$@
 	gcc -fPIC -c src/$@/comm.c -o build/obj/$@/comm.o
+	gcc -fPIC -c src/$@/comm_local.c -o build/obj/$@/comm_local.o
+	gcc -fPIC -c src/$@/comm_remote.c -o build/obj/$@/comm_remote.o
 
 memory: $(SOURCE_DIR)/memory/*.c
 	@mkdir -p $(OBJ_DIR)/$@
