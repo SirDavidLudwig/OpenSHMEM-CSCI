@@ -29,4 +29,4 @@ struct socket_t* create_socket();
 /**
  * Create a server socket
  */
-struct socket_t* create_server_socket(port);
+struct socket_t* create_server_socket(int port);

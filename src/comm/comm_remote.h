@@ -1,5 +1,7 @@
 #pragma once
 
+#define PORT_BASE 36500
+
 /**
  * Initialize remote communication
  */
