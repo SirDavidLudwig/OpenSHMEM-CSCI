@@ -1,12 +1,23 @@
 #include "comm_local.h"
 
 /**
+ * The symmetric heap
+ */
+static struct shared_heap_t *__symmetric_heap;
+
+/**
+ * A list of shared memory mappings for each PE
+ */
+static void **__shared_memory;
+
+// Layer Management --------------------------------------------------------------------------------
+
+/**
  * Initialize the local communication layer
  *
  * @param my_pe The current process' ID
- * @return      The shared heap object
  */
-struct shared_heap_t* comm_local_init(int my_pe)
+void comm_local_init(int my_pe)
 {
 	char key[255];
 
@@ -14,26 +25,28 @@ struct shared_heap_t* comm_local_init(int my_pe)
 	sprintf(key, "%s-shmem-%d", SHARED_MEMORY_PREFIX, my_pe);
 
 	// Create the local symmetric heap
-	return shared_heap_create(key, SYMMETRIC_HEAP_SIZE);
+	__symmetric_heap = shared_heap_create(key, SYMMETRIC_HEAP_SIZE);
 }
 
 /**
  * Finalize the local communication layer
  *
- * @param n_pes         The number of processes
- * @param heap          A reference to the symmetric heap
- * @param shared_memory A list of shared memory address pointers
+ * @param n_pes The number of processes
  */
-void comm_local_finalize(int n_pes, struct shared_heap_t *heap, void **shared_memory)
+void comm_local_finalize(int n_pes)
 {
 	// Close all shared memory heaps
 	for (int i = 0; i < n_pes; i++) {
-		if (shared_memory[i] != NULL) {
-			shared_heap_close(shared_memory[i]);
+		if (__shared_memory[i] != NULL) {
+			shared_heap_close(__shared_memory[i]);
 		}
 	}
+
+	// Close the symmetric heap
+	shared_heap_close(__symmetric_heap);
+
 	// Free the memory region
-	free(shared_memory);
+	free(__shared_memory);
 }
 
 /**
@@ -42,29 +55,25 @@ void comm_local_finalize(int n_pes, struct shared_heap_t *heap, void **shared_me
  * @param my_pe   The current process' ID
  * @param n_pes   The number of processes
  * @param hostmap A map of hosts indexed by PE ID
- * @return        A list of shared memory pointers
  */
-void** comm_local_wireup(int my_pe, int n_pes, char **hostmap)
+void comm_local_wireup(int my_pe, int n_pes, char **hostmap)
 {
 	char key[255];
-	void **shared_memory;
 
 	// Allocate the memory to store each symmetric heap
-	shared_memory = malloc(n_pes*sizeof(void*));
-	memset(shared_memory, 0, n_pes*sizeof(void*));
+	__shared_memory = malloc(n_pes*sizeof(void*));
+	memset(__shared_memory, 0, n_pes*sizeof(void*));
 
 	// Map all local symmetric heaps into memory
 	for (int i = 0; i < n_pes; i++) {
 		if (strcmp(hostmap[i], hostmap[my_pe]) == 0 && i != my_pe) {
 			sprintf(key, "%s-shmem-%d", SHARED_MEMORY_PREFIX, i);
-			if (!shared_mem_open(key, SYMMETRIC_HEAP_SIZE, &shared_memory[i])) {
+			if (!shared_mem_open(key, SYMMETRIC_HEAP_SIZE, &__shared_memory[i])) {
 				perror("Failed to open shared memory");
-				return NULL;
+				return;
 			}
 		}
 	}
-
-	return shared_memory;
 }
 
 // Communication Methods ---------------------------------------------------------------------------
@@ -72,25 +81,48 @@ void** comm_local_wireup(int my_pe, int n_pes, char **hostmap)
 /**
  * Get a value from a local PE
  *
- * @param heap The heap to get from
+ * @param pe   The PE to communicate with
  * @param dest The destination variable to put the result
  * @param src  The source offset position within the heap
  * @param size The number of bytes to send
  */
-void comm_local_get(void *heap, void *dest, long src, size_t size)
+void comm_local_get(int pe, void *dest, long src, size_t size)
 {
-	memcpy(dest, heap + src, size);
+	memcpy(dest, __shared_memory[pe] + src, size);
 }
 
 /**
  * Put a value into a local PE
  *
- * @param heap The heap to put to
+ * @param pe   The PE to communicate with
  * @param dest The destination offset position within the heap
  * @param src  The source variable to send
  * @param size The number of bytes to send
  */
-void comm_local_put(void *heap, long dest, const void *src, size_t size)
+void comm_local_put(int pe, long dest, const void *src, size_t size)
 {
-	memcpy(heap + dest, src, size);
+	memcpy(__shared_memory[pe] + dest, src, size);
+}
+
+// Accessors ---------------------------------------------------------------------------------------
+
+/**
+ * Get a reference to the symmetric heap
+ *
+ * @return A reference to the symmetric heap
+ */
+struct shared_heap_t* comm_local_heap()
+{
+	return __symmetric_heap;
+}
+
+/**
+ * Check if the given PE is local to the current PE
+ *
+ * @param pe The other PE to check
+ * @return   1 if the PE is local, otherwise 0
+ */
+int comm_local_has(int pe)
+{
+	return __shared_memory[pe] != NULL;
 }

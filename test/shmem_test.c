@@ -18,6 +18,8 @@ int main()
 
 	*a = *b = 0;
 
+	shmem_barrier_all();
+
 	if (my_pe == 0) {
 		*a = 10;
 		shmem_putmem(b, a, sizeof(char), 1);
