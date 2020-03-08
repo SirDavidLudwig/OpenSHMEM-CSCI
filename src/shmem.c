@@ -7,16 +7,6 @@
 #include "memory/shared_heap.h"
 #include "rte/rte.h"
 
-/**
- * The current PE's ID
- */
-static int MY_PE = 0;
-
-/**
- * The total number of PEs
- */
-static int N_PES = 0;
-
 // Library Setup/Querying --------------------------------------------------------------------------
 
 /**
@@ -25,21 +15,14 @@ static int N_PES = 0;
  */
 void shmem_init()
 {
-	char **hostmap;
-
 	// Initialize the runtime layer
 	rte_init();
 
-	// Fetch initial information
-	MY_PE = rte_my_pe();
-	N_PES = rte_n_pes();
-	// hostmap = rte_hosts();
-
 	// Prepare comm layer for wire up
-	//comm_init(shmem_my_pe(), shmem_n_pes());
+	comm_init(rte_my_local_pe(), rte_n_local_pes());
 
 	// Wire up all PE communication
-	//comm_wireup(hostmap);
+	comm_wireup(shmem_my_pe(), shmem_n_pes());
 
 	// Start the communication threads
 	// comm_start();
@@ -56,7 +39,7 @@ void shmem_init()
  */
 int shmem_my_pe()
 {
-	return MY_PE;
+	return rte_my_pe();
 }
 
 /**
@@ -64,7 +47,7 @@ int shmem_my_pe()
  */
 int shmem_n_pes()
 {
-	return N_PES;
+	return rte_n_pes();
 }
 
 /**
@@ -77,10 +60,7 @@ void shmem_finalize()
 	shmem_sync_all();
 
 	// Close tho communication layer
-	// comm_finalize();
-
-	// Free shared memory
-	// shared_memory_free();
+	comm_finalize();
 
 	// Close MPI
 	rte_finalize();

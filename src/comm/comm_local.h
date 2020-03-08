@@ -4,12 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "comm_node.h"
 #include "../memory/shared_heap.h"
-
-/**
- * How shared memory is prefixed
- */
-#define SHARED_MEMORY_PREFIX "dwl2x"
 
 /**
  * The size of the symmetric heap
@@ -21,25 +17,20 @@
 /**
  * Initialize the local communication layer
  *
- * @param my_pe The current process' ID
+ * @param my_local_pe The current process' local ID
+ * @param n_local_pes The total number of local PEs on the node
  */
-void comm_local_init(int my_pe);
+void comm_local_init(int my_local_pe, int n_local_pes);
 
 /**
  * Finalize the local communication layer
- *
- * @param n_pes The number of processes
  */
-void comm_local_finalize(int n_pes);
+void comm_local_finalize();
 
 /**
  * Wire up local processes
- *
- * @param my_pe   The current process' ID
- * @param n_pes   The number of processes
- * @param hostmap A map of hosts indexed by PE ID
  */
-void comm_local_wireup(int my_pe, int n_pes, char **hostmap);
+void comm_local_wireup();
 
 // Communication Methods ---------------------------------------------------------------------------
 
@@ -79,3 +70,8 @@ struct shared_heap_t* comm_local_heap();
  * @return   1 if the PE is local, otherwise 0
  */
 int comm_local_has(int pe);
+
+/**
+ * Calculate the offset of the given pointer on the heap
+ */
+size_t comm_local_offset(const void* ptr);

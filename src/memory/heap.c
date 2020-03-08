@@ -131,8 +131,9 @@ void heap_free(struct heap_t *heap, void *ptr)
  *
  * @param heap The heap reference
  * @param ptr  The address within the heap
+ * @return     The offset distance from the beginning of the heap
  */
-long heap_offset(struct heap_t *heap, void *ptr)
+size_t heap_offset(struct heap_t *heap, const void *ptr)
 {
 	return ptr - heap->ptr;
 }

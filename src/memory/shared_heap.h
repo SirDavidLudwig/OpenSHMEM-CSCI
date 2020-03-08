@@ -55,3 +55,12 @@ void shared_heap_free(struct shared_heap_t *shared_heap, void *ptr);
  * @param heap The heap to close
  */
 void shared_heap_close(struct shared_heap_t *shared_heap);
+
+/**
+ * Calculate the offset from the beginning if oth heap
+ *
+ * @param shared_heap The shared heap object
+ * @param ptr         The address of the memory block
+ * @return            The heap-offset of the memory block
+ */
+size_t shared_heap_offset(struct shared_heap_t *shared_heap, const void *ptr);

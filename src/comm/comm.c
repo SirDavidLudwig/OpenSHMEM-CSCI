@@ -19,14 +19,14 @@ static int __n_pes;
 
 /**
  * Initialize the communication layer
+ *
+ * @param my_local_pe The local ID of this PE with respect to the node
+ * @param n_local_pes The total number of PEs on this node
  */
-void comm_init(int my_pe, int n_pes)
+void comm_init(int my_local_pe, int n_local_pes)
 {
-	__my_pe = my_pe;
-	__n_pes = n_pes;
-
-	comm_local_init(my_pe);
-	//comm_remote_init(my_pe, n_pes);
+	comm_local_init(my_local_pe, n_local_pes);
+	//comm_remote_init();
 }
 
 /**
@@ -34,15 +34,15 @@ void comm_init(int my_pe, int n_pes)
  */
 void comm_finalize()
 {
-	comm_local_finalize(__n_pes);
+	comm_local_finalize();
 }
 
 /**
  * Wire up the processes
  */
-void comm_wireup(char **hostmap)
+void comm_wireup(int my_pe, int n_pes)
 {
-	comm_local_wireup(__my_pe, __n_pes, hostmap);
+	comm_local_wireup();
 	// comm_remote_wireup(hostmap);
 }
 
@@ -59,7 +59,7 @@ void comm_wireup(char **hostmap)
 void comm_get(void *dest, const void *source, size_t bytes, int dest_pe)
 {
 	if (comm_is_local(dest_pe)) {
-		comm_local_get(dest_pe, dest, OFFSET(comm_local_heap(), source), bytes);
+		comm_local_get(dest_pe, dest, comm_local_offset(source), bytes);
 	}
 }
 
@@ -74,7 +74,7 @@ void comm_get(void *dest, const void *source, size_t bytes, int dest_pe)
 void comm_put(void *dest, const void *source, size_t bytes, int dest_pe)
 {
 	if (comm_is_local(dest_pe)) {
-		comm_local_put(dest_pe, OFFSET(comm_local_heap(), dest), source, bytes);
+		comm_local_put(dest_pe, comm_local_offset(dest), source, bytes);
 	}
 }
 

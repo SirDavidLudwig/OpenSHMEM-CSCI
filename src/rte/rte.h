@@ -41,7 +41,7 @@ char** rte_hosts();
  * Get the hostname for the current process
  *
  * @param hostname The hostname
- * @param len      The length of the hostname
+ * @param [len]    The length of the hostname
  */
 void rte_hostname(char *hostname, int *len);
 
@@ -54,3 +54,23 @@ int rte_my_pe();
  * Get the number of processes
  */
 int rte_n_pes();
+
+/**
+ * Get the current process' local ID
+ */
+int rte_my_local_pe();
+
+/**
+ * Get the number of local PEs on the node
+ */
+int rte_n_local_pes();
+
+/**
+ * Get a list of all local PEs
+ */
+void rte_local_peers(char *hostname, int **pes, int *len);
+
+/**
+ * Get the root process for a node
+ */
+int rte_local_root(char *hostname);

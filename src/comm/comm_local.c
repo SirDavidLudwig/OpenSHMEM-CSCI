@@ -1,6 +1,16 @@
 #include "comm_local.h"
 
 /**
+ * The current process' local PE
+ */
+static int __my_local_pe;
+
+/**
+ * The number of local PEs on the node
+ */
+static int __n_local_pes;
+
+/**
  * The symmetric heap
  */
 static struct shared_heap_t *__symmetric_heap;
@@ -15,14 +25,18 @@ static void **__shared_memory;
 /**
  * Initialize the local communication layer
  *
- * @param my_pe The current process' ID
+ * @param my_local_pe The current process' local ID
+ * @param n_local_pes The total number of local PEs on the node
  */
-void comm_local_init(int my_pe)
+void comm_local_init(int my_local_pe, int n_local_pes)
 {
-	char key[255];
+	char key[256];
+
+	__my_local_pe = my_local_pe;
+	__n_local_pes = n_local_pes;
 
 	// Generate the key
-	sprintf(key, "%s-shmem-%d", SHARED_MEMORY_PREFIX, my_pe);
+	sprintf(key, "%s-shmem-%d", SHARED_MEMORY_PREFIX, my_local_pe);
 
 	// Create the local symmetric heap
 	__symmetric_heap = shared_heap_create(key, SYMMETRIC_HEAP_SIZE);
@@ -30,15 +44,13 @@ void comm_local_init(int my_pe)
 
 /**
  * Finalize the local communication layer
- *
- * @param n_pes The number of processes
  */
-void comm_local_finalize(int n_pes)
+void comm_local_finalize()
 {
 	// Close all shared memory heaps
-	for (int i = 0; i < n_pes; i++) {
+	for (int i = 0; i < __n_local_pes; i++) {
 		if (__shared_memory[i] != NULL) {
-			shared_heap_close(__shared_memory[i]);
+			shared_mem_close(__shared_memory[i], SYMMETRIC_HEAP_SIZE);
 		}
 	}
 
@@ -51,22 +63,17 @@ void comm_local_finalize(int n_pes)
 
 /**
  * Wire up local processes
- *
- * @param my_pe   The current process' ID
- * @param n_pes   The number of processes
- * @param hostmap A map of hosts indexed by PE ID
  */
-void comm_local_wireup(int my_pe, int n_pes, char **hostmap)
+void comm_local_wireup()
 {
-	char key[255];
+	char key[256];
 
 	// Allocate the memory to store each symmetric heap
-	__shared_memory = malloc(n_pes*sizeof(void*));
-	memset(__shared_memory, 0, n_pes*sizeof(void*));
+	__shared_memory = malloc(__n_local_pes*sizeof(void*));
 
 	// Map all local symmetric heaps into memory
-	for (int i = 0; i < n_pes; i++) {
-		if (strcmp(hostmap[i], hostmap[my_pe]) == 0 && i != my_pe) {
+	for (int i = 0; i < __n_local_pes; i++) {
+		if (i != __my_local_pe) {
 			sprintf(key, "%s-shmem-%d", SHARED_MEMORY_PREFIX, i);
 			if (!shared_mem_open(key, SYMMETRIC_HEAP_SIZE, &__shared_memory[i])) {
 				perror("Failed to open shared memory");
@@ -125,4 +132,12 @@ struct shared_heap_t* comm_local_heap()
 int comm_local_has(int pe)
 {
 	return __shared_memory[pe] != NULL;
+}
+
+/**
+ * Calculate the offset of the given pointer on the heap
+ */
+size_t comm_local_offset(const void* ptr)
+{
+	return shared_heap_offset(__symmetric_heap, ptr);
 }

@@ -115,12 +115,14 @@ void rte_barrier_all()
  * Get the hostname for the current process
  *
  * @param hostname The hostname
- * @param len      The length of the hostname
+ * @param [len]    The length of the hostname
  */
 void rte_hostname(char *hostname, int *len)
 {
 	gethostname(hostname, HOSTNAME_LEN);
-	*len = strlen(hostname);
+	if (len != NULL) {
+		*len = strlen(hostname);
+	}
 }
 
 /**
@@ -137,4 +139,91 @@ int rte_my_pe()
 int rte_n_pes()
 {
 	return __N_PES;
+}
+
+/**
+ * Get the current process' local ID
+ */
+int rte_my_local_pe()
+{
+	pmix_status_t rc;
+	pmix_value_t *val;
+	int result;
+
+	// Prepare the proc
+	__proc.rank = __MY_PE;
+
+	// Get the process' local ID
+	if (PMIX_SUCCESS != (rc = PMIx_Get(&__proc, PMIX_LOCAL_RANK, NULL, 0, &val))) {
+		perror("PMIx Get failed to retrieve local rank");
+		return -1;
+	}
+
+	// free the value and return the result
+	result = (int) val->data.uint16;
+	PMIX_VALUE_RELEASE(val);
+	return result;
+}
+
+/**
+ * Get the number of local PEs on the node
+ */
+int rte_n_local_pes()
+{
+	pmix_status_t rc;
+	pmix_value_t *val;
+	int result;
+
+	// Prepare the proc
+	__proc.rank = PMIX_RANK_WILDCARD;
+
+	// Get the number of PEs on this node
+	if (PMIX_SUCCESS != (rc = PMIx_Get(&__proc, PMIX_LOCAL_SIZE, NULL, 0, &val))) {
+		perror("PMIx Get failed to retrieve local job size");
+		return -1;
+	}
+
+	// Free the value and return the result
+	result = (int) val->data.uint32;
+	PMIX_VALUE_RELEASE(val);
+	return result;
+}
+
+/**
+ * Get a list of all local PEs
+ */
+void rte_local_peers(char *hostname, int **pes, int *len)
+{
+	pmix_status_t rc;
+	pmix_proc_t *procs;
+	size_t n_procs;
+	int i;
+
+	// Get the list of local peers
+	if (PMIX_SUCCESS != (rc = PMIx_Resolve_peers(hostname, __proc.nspace, &procs, &n_procs))) {
+		perror("PMIx failed to resolve local peers");
+		return;
+	}
+
+	// Allocate the result array and copy the values
+	*pes = malloc(n_procs*sizeof(int));
+	*len = (int) n_procs;
+	for (i = 0; i < n_procs; i++) {
+		(*pes)[i] = (int) procs[i].rank;
+	}
+}
+
+/**
+ * Get the root process for a node
+ */
+int rte_local_root(char *hostname)
+{
+	int *peers;
+	int n_peers;
+
+	// fetch the list of local peers
+	rte_local_peers(hostname, &peers, &n_peers);
+
+	// Return the first item
+	return peers[0];
 }

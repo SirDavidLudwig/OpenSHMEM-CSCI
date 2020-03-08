@@ -1,5 +1,6 @@
 #pragma once
 
+#include "comm_node.h"
 #include "comm_local.h"
 #include "comm_remote.h"
 
@@ -7,8 +8,11 @@
 
 /**
  * Initialize the communication layer
+ *
+ * @param my_local_pe The local ID of this PE with respect to the node
+ * @param n_local_pes The total number of PEs on this node
  */
-void comm_init(int my_pe, int n_pes);
+void comm_init(int my_local_pe, int n_local_pes);
 
 /**
  * Finalize the communication layer
@@ -18,7 +22,7 @@ void comm_finalize();
 /**
  * Wire up the processes
  */
-void comm_wireup(char **hostmap);
+void comm_wireup(int my_pe, int n_pes);
 
 // Communication Methods ---------------------------------------------------------------------------
 
