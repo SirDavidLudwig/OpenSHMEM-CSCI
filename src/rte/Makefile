@@ -1,3 +1,6 @@
+# The build command to use
+CC = ortecc
+
 # Ooutput Directory
 OUT_DIR = ../../build/obj/rte
 
@@ -5,13 +8,12 @@ OUT_DIR = ../../build/obj/rte
 RTE_FRAMEWORKS := $(sort $(patsubst %/,%,$(dir $(wildcard */rte.c))))
 
 # Make all RTE implementations
-all: $(RTE_FRAMEWORKS) util
+all: $(RTE_FRAMEWORKS)
 
 # Implementation Building --------------------------------------------------------------------------
 
-# MPI
-mpi/%.o: mpi/%.c
-	mpicc -fPIC -c $< -o $(OUT_DIR)/$@
+$(RTE_FRAMEWORK)/%.o: $(RTE_FRAMEWORK)/%.c
+	$(CC) -fPIC -c $< -o $(OUT_DIR)/$@ -l$(RTE_FRAMEWORK)
 
 # Auto-magic stuff ---------------------------------------------------------------------------------
 

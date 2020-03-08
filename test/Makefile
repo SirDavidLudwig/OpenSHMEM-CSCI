@@ -1,5 +1,5 @@
 # The build command to use
-CC = mpicc
+CC = ortecc
 INC = -I$(realpath ../build/include)
 LIB = -L$(realpath ../build/lib)
 
@@ -31,7 +31,7 @@ clean:
 
 $(TEST_NAMES):
 	@mkdir -p $(BUILD_DIR)
-#	$(CC) $@.c $(INC) $(LIB) -lopenshmem -o $(BUILD_DIR)/$@
-	$(CC) $@.c $(INC) $(OBJ_FILES) -o $(BUILD_DIR)/$@ -lrt -pthread
+#	$(CC) $@.c $(INC) $(LIB) -lopenshmem -o $(BUILD_DIR)/$@ -lrt -lpthread -lpmix
+	$(CC) $@.c $(INC) $(OBJ_FILES) -o $(BUILD_DIR)/$@ -lrt -lpthread -l$(RTE_FRAMEWORK)
 
 .PHONY: all clean

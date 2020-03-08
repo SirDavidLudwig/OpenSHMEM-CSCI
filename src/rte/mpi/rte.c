@@ -77,7 +77,7 @@ char** rte_hosts()
  * [Collective]
  * Perform a barrier at the RTE layer
  */
-void rte_barrier()
+void rte_barrier_all()
 {
 	MPI_Barrier(MPI_COMM_WORLD);
 }

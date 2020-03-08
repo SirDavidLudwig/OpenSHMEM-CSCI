@@ -10,12 +10,12 @@
 /**
  * The current PE's ID
  */
-static int MY_PE;
+static int MY_PE = 0;
 
 /**
  * The total number of PEs
  */
-static int N_PES;
+static int N_PES = 0;
 
 // Library Setup/Querying --------------------------------------------------------------------------
 
@@ -33,19 +33,19 @@ void shmem_init()
 	// Fetch initial information
 	MY_PE = rte_my_pe();
 	N_PES = rte_n_pes();
-	hostmap = rte_hosts();
+	// hostmap = rte_hosts();
 
 	// Prepare comm layer for wire up
-	comm_init(shmem_my_pe(), shmem_n_pes());
+	//comm_init(shmem_my_pe(), shmem_n_pes());
 
 	// Wire up all PE communication
-	comm_wireup(hostmap);
+	//comm_wireup(hostmap);
 
 	// Start the communication threads
 	// comm_start();
 
 	// Free the unused information
-	free(hostmap);
+	// free(hostmap);
 
 	// Wait for all processes to finish
 	shmem_sync_all();
@@ -165,7 +165,7 @@ void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe)
  */
 void shmem_barrier_all()
 {
-	rte_barrier();
+	rte_barrier_all();
 	// int pe = shmem_my_pe();
 	// int n_pes = shmem_n_pes();
 

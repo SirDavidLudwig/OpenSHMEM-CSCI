@@ -1,4 +1,7 @@
-# Variables ----------------------------------------------------------------------------------------
+# The build command to use
+CC = ortecc
+INC = -I$(realpath ../build/include)
+LIB = -L$(realpath ../build/lib)
 
 # The RTE framework implementation to use
 RTE_FRAMEWORK ?= mpi
@@ -26,28 +29,27 @@ all: openshmem test/shmem_test
 libopenshmem: openshmem
 	@mkdir -p $(BUILD_DIR)/lib
 	cp $(SOURCE_DIR)/shmem.h $(BUILD_DIR)/include
-	gcc -shared $(OBJ_DIR)/*.o \
+	$(CC) -shared $(OBJ_DIR)/*.o \
 	            $(OBJ_DIR)/rte/$(RTE_FRAMEWORK)/*.o \
 	    -o $(BUILD_DIR)/lib/$@.so
-
 
 openshmem: comm memory network rte src/shmem.c
 	@mkdir -p $(BUILD_DIR)/include
 	cp $(SOURCE_DIR)/shmem.h $(BUILD_DIR)/include
-	gcc -fPIC -c src/shmem.c -o build/obj/shmem.o
+	$(CC) -fPIC -c src/shmem.c -o build/obj/shmem.o
 
 comm: $(SOURCE_DIR)/comm/*.c
 	@mkdir -p $(OBJ_DIR)/$@
-	gcc -fPIC -c src/$@/comm.c -o build/obj/$@/comm.o
-	gcc -fPIC -c src/$@/comm_local.c -o build/obj/$@/comm_local.o
-	gcc -fPIC -c src/$@/comm_remote.c -o build/obj/$@/comm_remote.o
+	$(CC) -fPIC -c src/$@/comm.c -o build/obj/$@/comm.o
+	$(CC) -fPIC -c src/$@/comm_local.c -o build/obj/$@/comm_local.o
+	$(CC) -fPIC -c src/$@/comm_remote.c -o build/obj/$@/comm_remote.o
 
 memory: $(SOURCE_DIR)/memory/*.c
 	@mkdir -p $(OBJ_DIR)/$@
-	gcc -fPIC -c src/$@/heap.c -o build/obj/$@/heap.o
-	gcc -fPIC -c src/$@/hashmap.c -o build/obj/$@/hashmap.o
-	gcc -fPIC -c src/$@/shared_heap.c -o build/obj/$@/shared_heap.o
-	gcc -fPIC -c src/$@/shared_mem.c -o build/obj/$@/shared_mem.o
+	$(CC) -fPIC -c src/$@/heap.c -o build/obj/$@/heap.o
+	$(CC) -fPIC -c src/$@/hashmap.c -o build/obj/$@/hashmap.o
+	$(CC) -fPIC -c src/$@/shared_heap.c -o build/obj/$@/shared_heap.o
+	$(CC) -fPIC -c src/$@/shared_mem.c -o build/obj/$@/shared_mem.o
 
 network:
 	@mkdir -p $(OBJ_DIR)/network

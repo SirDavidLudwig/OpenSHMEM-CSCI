@@ -26,7 +26,7 @@ void comm_init(int my_pe, int n_pes)
 	__n_pes = n_pes;
 
 	comm_local_init(my_pe);
-	comm_remote_init(my_pe, n_pes);
+	//comm_remote_init(my_pe, n_pes);
 }
 
 /**

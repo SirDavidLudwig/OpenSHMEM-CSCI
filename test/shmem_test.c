@@ -13,24 +13,24 @@ int main()
 
 	printf("My PE is %d, and there are %d PEs\n", my_pe, n_pes);
 
-	char *a = shmem_malloc(sizeof(char));
-	char *b = shmem_malloc(sizeof(char));
+	// char *a = shmem_malloc(sizeof(char));
+	// char *b = shmem_malloc(sizeof(char));
 
-	*a = *b = 0;
-
-	shmem_barrier_all();
-
-	if (my_pe == 0) {
-		*a = 10;
-		shmem_putmem(b, a, sizeof(char), 1);
-		while (*b == 0);
-		printf("The result is %d\n", *b);
-
-	} else {
-		while(*b == 0);
-		*a = *b*2;
-		shmem_putmem(b, a, sizeof(char), 0);
-	}
+	// *a = *b = 0;
+//
+//	shmem_barrier_all();
+//
+//	if (my_pe == 0) {
+//		*a = 10;
+//		shmem_putmem(b, a, sizeof(char), 1);
+//		while (*b == 0);
+//		printf("The result is %d\n", *b);
+//
+//	} else {
+//		while(*b == 0);
+//		*a = *b*2;
+//		shmem_putmem(b, a, sizeof(char), 0);
+//	}
 
 	shmem_finalize();
 

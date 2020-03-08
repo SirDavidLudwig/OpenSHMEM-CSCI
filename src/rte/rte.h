@@ -27,7 +27,7 @@ void rte_finalize();
  * [Collective]
  * Perform a barrier at the RTE layer
  */
-void rte_barrier();
+void rte_barrier_all();
 
 /**
  * [Collective]
