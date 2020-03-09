@@ -10,6 +10,37 @@
 // Library Setup/Querying --------------------------------------------------------------------------
 
 /**
+ * Map the locality of the nodes in the comm layer
+ */
+static void __shmem_map_locality()
+{
+	char hostname[HOSTNAME_LEN];
+	char **hosts;
+	int **pes;
+	int n_hosts;
+	int *n_pes;
+	int i;
+
+	// Get the host name of the current node
+	rte_hostname(hostname, NULL);
+
+	// Generate the list of host-PE mappings
+	rte_remote_peers(&hosts, &pes, &n_hosts, &n_pes);
+
+	// Map everything out in the communication layer
+	comm_map_locality(hostname, hosts, pes, n_hosts, n_pes);
+
+	// Free memory
+	for (i = 0; i < n_hosts; i++) {
+		free(hosts[i]);
+		free(pes[i]);
+	}
+	free(hosts);
+	free(pes);
+	free(n_pes);
+}
+
+/**
  * [Collective]
  * Allocates and initializes resources used by OpenSHMEM
  */
@@ -18,8 +49,16 @@ void shmem_init()
 	// Initialize the runtime layer
 	rte_init();
 
-	// Prepare comm layer for wire up
-	comm_init(rte_my_local_pe(), rte_n_local_pes());
+	// Initialize the communication layer
+	comm_init(rte_my_local_pe(), rte_n_local_pes(), rte_n_pes(), rte_n_nodes());
+
+	// Have the local root map the locality of nodes
+	if (0 == rte_my_local_pe()) {
+		__shmem_map_locality();
+	}
+
+	// Wait for all processes to initialize their comm layer
+	rte_barrier_all();
 
 	// Wire up all PE communication
 	comm_wireup(shmem_my_pe(), shmem_n_pes());

@@ -11,13 +11,26 @@
  *
  * @param my_local_pe The local ID of this PE with respect to the node
  * @param n_local_pes The total number of PEs on this node
+ * @param n_pes       The total number of PEs
+ * @param n_nodes     The total number of nodes
  */
-void comm_init(int my_local_pe, int n_local_pes);
+void comm_init(int my_local_pe, int n_local_pes, int n_pes, int n_nodes);
 
 /**
  * Finalize the communication layer
  */
 void comm_finalize();
+
+/**
+ * Map the locality of the given PEs and nodes
+ *
+ * @param host    The hostname of hte current node
+ * @param hosts   The complete list of hosts
+ * @param pes     The 2D-list of pes assocociated with `hosts`
+ * @param n_hosts The number of hosts in the list
+ * @param n_pes   A list of the number of PEs for each host
+ */
+void comm_map_locality(char *host, char **hosts, int **pes, int n_hosts, int *n_pes);
 
 /**
  * Wire up the processes

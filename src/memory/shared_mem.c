@@ -1,6 +1,28 @@
 #include "shared_mem.h"
 
 /**
+ * Generate the key to a shared memory object
+ *
+ * @param identifier The identifier for the key
+ * @param key        The resulting key
+ */
+void shared_mem_key_int(int identifier, char key[256])
+{
+	sprintf(key, "%s-shmem-%d", SHARED_MEMORY_PREFIX, identifier);
+}
+
+/**
+ * Generate the key to a shared memory object
+ *
+ * @param identifier The identifier for the key
+ * @param key        The resulting key
+ */
+void shared_mem_key_str(char *identifier, char key[256])
+{
+	sprintf(key, "%s-shmem-%s", SHARED_MEMORY_PREFIX, identifier);
+}
+
+/**
  * Create or open a shared memory object and map it into memory
  *
  * @param key    The name of the shared memory object

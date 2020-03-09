@@ -36,7 +36,7 @@ void comm_local_init(int my_local_pe, int n_local_pes)
 	__n_local_pes = n_local_pes;
 
 	// Generate the key
-	sprintf(key, "%s-shmem-%d", SHARED_MEMORY_PREFIX, my_local_pe);
+	shared_mem_key(my_local_pe, key);
 
 	// Create the local symmetric heap
 	__symmetric_heap = shared_heap_create(key, SYMMETRIC_HEAP_SIZE);
@@ -74,7 +74,7 @@ void comm_local_wireup()
 	// Map all local symmetric heaps into memory
 	for (int i = 0; i < __n_local_pes; i++) {
 		if (i != __my_local_pe) {
-			sprintf(key, "%s-shmem-%d", SHARED_MEMORY_PREFIX, i);
+			shared_mem_key(i, key);
 			if (!shared_mem_open(key, SYMMETRIC_HEAP_SIZE, &__shared_memory[i])) {
 				perror("Failed to open shared memory");
 				return;

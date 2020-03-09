@@ -2,10 +2,7 @@
 
 #include <string.h>
 
-/**
- * The maximum hostname length
- */
-#define HOSTNAME_LEN 256
+#include "../common.h"
 
 // Layer Management --------------------------------------------------------------------------------
 
@@ -25,15 +22,15 @@ void rte_finalize();
 
 /**
  * [Collective]
- * Perform a barrier at the RTE layer
+ * Perform a barrier at the RTE layer on the current node only
  */
-void rte_barrier_all();
+void rte_barrier_node();
 
 /**
  * [Collective]
- * Get a list of all hostnames mapped by PE
+ * Perform a barrier at the RTE layer
  */
-char** rte_hosts();
+void rte_barrier_all();
 
 // Accessors ---------------------------------------------------------------------------------------
 
@@ -44,6 +41,11 @@ char** rte_hosts();
  * @param [len]    The length of the hostname
  */
 void rte_hostname(char *hostname, int *len);
+
+/**
+ * Get the list of hosts
+ */
+void rte_hosts(char ***hosts, int *len);
 
 /**
  * Get the current process' ID
@@ -66,9 +68,19 @@ int rte_my_local_pe();
 int rte_n_local_pes();
 
 /**
- * Get a list of all local PEs
+ * Get the total number of nodes
+ */
+int rte_n_nodes();
+
+/**
+ * Get a list of all PEs on a node
  */
 void rte_local_peers(char *hostname, int **pes, int *len);
+
+/**
+ * Get all remote peers
+ */
+void rte_remote_peers(char ***hosts, int ***pes, int *n_hosts, int **n_pes);
 
 /**
  * Get the root process for a node

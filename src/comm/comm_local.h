@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "comm_node.h"
 #include "../memory/shared_heap.h"
 
 /**

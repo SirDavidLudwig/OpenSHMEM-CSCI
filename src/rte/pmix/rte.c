@@ -67,31 +67,30 @@ void rte_finalize()
 
 /**
  * [Collective]
- * Get a list of all hostnames mapped by PE
+ * Perform a barrier at the RTE layer on the current node only
  */
-char** rte_hosts()
+void rte_barrier_node()
 {
-	char **hostmap;
-	// char hosts[rte_n_pes() * HOSTNAME_LEN];
-	// char hostname[HOSTNAME_LEN];
-	// int i, len;
+	pmix_proc_t procs[rte_n_local_pes()];
+	char hostname[HOSTNAME_LEN];
+	int *pes;
+	int n_pes;
+	int i;
 
-	// // Allocate a hostname for each PE
-	// hostmap = malloc(rte_n_pes() * sizeof(char *));
+	// Get the list of local peers
+	rte_local_peers(hostname, &pes, &n_pes);
 
-	// // Get the hostname of the process
-	// rte_hostname(hostname, &len);
+	// Copy the PE info into the procs list
+	for (i = 0; i < n_pes; i++) {
+		memcpy(procs[i].nspace, __proc.nspace, 256);
+		procs[i].rank = pes[i];
+	}
 
-	// Let everyone know who is who and where they can be found
-	// MPI_Allgather(hostname, HOSTNAME_LEN, MPI_CHAR, hosts, HOSTNAME_LEN, MPI_CHAR, MPI_COMM_WORLD);
+	// Perform a fence/barrier
+	PMIx_Fence(procs, n_pes, NULL, 0);
 
-	// // Copy from 1D array to 2D array
-	// for (i = 0; i < rte_n_pes(); i++) {
-	// 	hostmap[i] = malloc(HOSTNAME_LEN);
-	// 	strcpy(hostmap[i], hosts + i * HOSTNAME_LEN);
-	// }
-
-	return hostmap;
+	// Free memory
+	free(pes);
 }
 
 /**
@@ -122,6 +121,33 @@ void rte_hostname(char *hostname, int *len)
 	gethostname(hostname, HOSTNAME_LEN);
 	if (len != NULL) {
 		*len = strlen(hostname);
+	}
+}
+
+/**
+ * Get the list of hosts
+ */
+void rte_hosts(char ***hosts, int *len)
+{
+	pmix_status_t rc;
+	pmix_value_t *val;
+	char *hoststr;
+	char *host;
+	*len = 0;
+
+	// Get the list of hosts
+	if (PMIX_SUCCESS != (rc = PMIx_Resolve_nodes(__proc.nspace, &hoststr))) {
+		perror("Fail to resolve hosts");
+		return;
+	};
+
+	// Allocate memory for the list
+	*hosts = malloc(rte_n_nodes()*sizeof(char*));
+
+	// Copy the hosts from the string list into the array
+	for (host = strtok(hoststr, ","); host != NULL; host = strtok(NULL, ","), *len += 1) {
+		(*hosts)[*len] = malloc(HOSTNAME_LEN*sizeof(char));
+		strcpy((*hosts)[*len], host);
 	}
 }
 
@@ -190,7 +216,31 @@ int rte_n_local_pes()
 }
 
 /**
- * Get a list of all local PEs
+ * Get the total number of nodes
+ */
+int rte_n_nodes()
+{
+	pmix_status_t rc;
+	pmix_value_t *val;
+	int result;
+
+	// Prepare the proc
+	__proc.rank = PMIX_RANK_WILDCARD;
+
+	// Get the number of PEs on this node
+	if (PMIX_SUCCESS != (rc = PMIx_Get(&__proc, PMIX_NUM_NODES, NULL, 0, &val))) {
+		perror("PMIx Get failed to retrieve the number of nodes");
+		return -1;
+	}
+
+	// Free the value and return the result
+	result = (int) val->data.uint32;
+	PMIX_VALUE_RELEASE(val);
+	return result;
+}
+
+/**
+ * Get a list of all PEs on a node
  */
 void rte_local_peers(char *hostname, int **pes, int *len)
 {
@@ -206,10 +256,30 @@ void rte_local_peers(char *hostname, int **pes, int *len)
 	}
 
 	// Allocate the result array and copy the values
-	*pes = malloc(n_procs*sizeof(int));
 	*len = (int) n_procs;
+	*pes = malloc(n_procs*sizeof(int));
 	for (i = 0; i < n_procs; i++) {
 		(*pes)[i] = (int) procs[i].rank;
+	}
+}
+
+/**
+ * Get the list of nodes and PEs
+ */
+void rte_remote_peers(char ***hosts, int ***pes, int *n_hosts, int **n_pes)
+{
+	int i;
+
+	// Get the list of nodes
+	rte_hosts(hosts, n_hosts);
+
+	// Allocate the memory for the PE list (ignoring our host)
+	*pes = malloc((*n_hosts)*sizeof(int*));
+	*n_pes = malloc((*n_hosts)*sizeof(int));
+
+	// Resolve the PEs for each node
+	for (i = 0; i < *n_hosts; i++) {
+		rte_local_peers((*hosts)[i], &((*pes)[i]), &(*n_pes)[i]);
 	}
 }
 

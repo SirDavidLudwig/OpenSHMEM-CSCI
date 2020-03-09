@@ -43,6 +43,7 @@ comm: $(SOURCE_DIR)/comm/*.c
 	$(CC) -fPIC -c src/$@/comm.c -o build/obj/$@/comm.o
 	$(CC) -fPIC -c src/$@/comm_local.c -o build/obj/$@/comm_local.o
 	$(CC) -fPIC -c src/$@/comm_remote.c -o build/obj/$@/comm_remote.o
+	$(CC) -fPIC -c src/$@/comm_node.c -o build/obj/$@/comm_node.o
 
 memory: $(SOURCE_DIR)/memory/*.c
 	@mkdir -p $(OBJ_DIR)/$@

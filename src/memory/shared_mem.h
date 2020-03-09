@@ -8,14 +8,26 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 
-// Constants ---------------------------------------------------------------------------------------
+#include "../common.h"
 
 /**
- * Used to identify my shared memory objects on the shared cluster
+ * Create a generic for shared memory key generation
  */
-#define USER_IDENTIFIER "dwl2x"
+#define shared_mem_key(identifier, result) _Generic((identifier), \
+		int: shared_mem_key_int, \
+		char*: shared_mem_key_str \
+	)(identifier, result)
 
 // Heap Management ---------------------------------------------------------------------------------
+
+/**
+ * Generate the key to a shared memory object
+ *
+ * @param identifier The identifier for the key
+ * @param key        The resulting key
+ */
+void shared_mem_key_int(int identifier, char key[256]);
+void shared_mem_key_str(char *identifier, char key[256]);
 
 /**
  * Create or open a shared memory object and map it into memory
