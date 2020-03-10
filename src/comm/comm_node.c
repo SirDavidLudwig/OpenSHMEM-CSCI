@@ -18,7 +18,7 @@ static long *__p_sync;
 /**
  * The list of nodes
  */
-static char *__nodes;
+static host_map_t *__nodes;
 
 /**
  * The locality map of all PEs
@@ -43,7 +43,7 @@ void comm_node_init(int my_local_pe, int n_local_pes, int n_pes, int n_nodes)
 
 	// Calculate the size of the memory blocks in the region
 	p_sync_size       = n_local_pes*sizeof(long);
-	nodes_size        = n_nodes*HOSTNAME_LEN*sizeof(char);
+	nodes_size        = n_nodes*sizeof(host_map_t);
 	locality_map_size = n_pes*sizeof(locality_map_t);
 	__size            = p_sync_size + nodes_size + locality_map_size;
 
@@ -72,31 +72,28 @@ void comm_node_finalize()
 /**
  * Map the locality of the given PEs and nodes
  *
- * @param host    The hostname of hte current node
- * @param hosts   The complete list of hosts
- * @param pes     The 2D-list of pes assocociated with `hosts`
- * @param n_hosts The number of hosts in the list
- * @param n_pes   A list of the number of PEs for each host
+ * @param hostname The hostname of the current node
+ * @param hosts    The complete list of hosts
+ * @param pes      The 2D-list of pes assocociated with `hosts`
+ * @param n_hosts  The number of hosts in the list
+ * @param n_pes    A list of the number of PEs for each host
  */
-void comm_node_map_locality(char *host, char **hosts, int **pes, int n_hosts, int *n_pes)
+void comm_node_map_locality(char *hostname, char **hosts, int **pes, int n_hosts, int *n_pes)
 {
 	locality_map_t *map;
-	locality_value_t value;
-	char *host_ptr;
 	char type;
 	int i, j;
+	int index = 0;
 
 	for (i = 0; i < n_hosts; i++) {
-		strcpy(host_ptr = __nodes + i*HOSTNAME_LEN, hosts[i]);
-		type = (strcmp(host, hosts[i]) == 0) ? PE_TYPE_LOCAL : PE_TYPE_REMOTE;
+		__nodes[i].addr = netutil_resolve_host(hosts[i]);
+		strcpy(__nodes[i].hostname, hosts[i]);
+		type = (strcmp(hostname, hosts[i]) == 0) ? PE_TYPE_LOCAL : PE_TYPE_REMOTE;
 		for (j = 0; j < n_pes[i]; j++) {
-			map = (__locality_map + pes[i][j]*LOCALITY_MAP_SIZE);
-			// If this node is local, store the local ID; otherwise, pointer to the host name
-			if (PE_TYPE_LOCAL == (map->type = type)) {
-				map->value.local_id = j;
-			} else {
-				map->value.hostname = host_ptr;
-			}
+			map        = &__locality_map[pes[i][j]];
+			map->type  = type;
+			map->index = (type == PE_TYPE_LOCAL) ? j : index++;
+			map->host  = &__nodes[i];
 		}
 	}
 }
@@ -111,5 +108,5 @@ void comm_node_map_locality(char *host, char **hosts, int **pes, int n_hosts, in
  */
 locality_map_t* comm_node_map(int pe)
 {
-	return __locality_map + pe*LOCALITY_MAP_SIZE;
+	return &__locality_map[pe];
 }

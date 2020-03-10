@@ -1,11 +1,13 @@
 #pragma once
 
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include "../common.h"
 #include "../memory/shared_mem.h"
+#include "../network/netutil.h"
 
 /**
  * Locality of a PE
@@ -19,12 +21,13 @@
 #define LOCALITY_MAP_SIZE sizeof(locality_map_t)
 
 /**
- * The possible types for a locality map's value
+ * Hostname and IP address information
  */
-typedef union {
-	char *hostname;
-	int local_id;
-} locality_value_t;
+typedef struct host_map
+{
+	char hostname[HOSTNAME_LEN];
+	in_addr_t addr;
+} host_map_t;
 
 /**
  * Map a PE to a local ID or a remote host
@@ -32,7 +35,8 @@ typedef union {
 typedef struct locality_map
 {
 	char type;
-	locality_value_t value;
+	int index;
+	host_map_t *host;
 } locality_map_t;
 
 /**
@@ -53,13 +57,13 @@ void comm_node_finalize();
 /**
  * Map the locality of the given PEs and nodes
  *
- * @param host    The hostname of hte current node
- * @param hosts   The complete list of hosts
- * @param pes     The 2D-list of pes assocociated with `hosts`
- * @param n_hosts The number of hosts in the list
- * @param n_pes   A list of the number of PEs for each host
+ * @param hostname The hostname of the current node
+ * @param hosts    The complete list of hosts
+ * @param pes      The 2D-list of pes assocociated with `hosts`
+ * @param n_hosts  The number of hosts in the list
+ * @param n_pes    A list of the number of PEs for each host
  */
-void comm_node_map_locality(char *host, char **hosts, int **pes, int n_hosts, int *n_pes);
+void comm_node_map_locality(char *hostname, char **hosts, int **pes, int n_hosts, int *n_pes);
 
 // Accessors ---------------------------------------------------------------------------------------
 

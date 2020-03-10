@@ -35,7 +35,7 @@ void comm_local_init(int my_local_pe, int n_local_pes)
 	__my_local_pe = my_local_pe;
 	__n_local_pes = n_local_pes;
 
-	// Generate the key
+	// Generate the shared memory key
 	shared_mem_key(my_local_pe, key);
 
 	// Create the local symmetric heap

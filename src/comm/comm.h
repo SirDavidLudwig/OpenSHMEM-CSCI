@@ -11,10 +11,11 @@
  *
  * @param my_local_pe The local ID of this PE with respect to the node
  * @param n_local_pes The total number of PEs on this node
+ * @param my_pe       The current PE's ID
  * @param n_pes       The total number of PEs
  * @param n_nodes     The total number of nodes
  */
-void comm_init(int my_local_pe, int n_local_pes, int n_pes, int n_nodes);
+void comm_init(int my_local_pe, int n_local_pes, int my_pe, int n_pes, int n_nodes);
 
 /**
  * Finalize the communication layer
@@ -35,7 +36,7 @@ void comm_map_locality(char *host, char **hosts, int **pes, int n_hosts, int *n_
 /**
  * Wire up the processes
  */
-void comm_wireup(int my_pe, int n_pes);
+void comm_wireup();
 
 // Communication Methods ---------------------------------------------------------------------------
 

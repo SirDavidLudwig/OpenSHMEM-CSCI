@@ -50,7 +50,7 @@ void shmem_init()
 	rte_init();
 
 	// Initialize the communication layer
-	comm_init(rte_my_local_pe(), rte_n_local_pes(), rte_n_pes(), rte_n_nodes());
+	comm_init(rte_my_local_pe(), rte_n_local_pes(), rte_my_pe(), rte_n_pes(), rte_n_nodes());
 
 	// Have the local root map the locality of nodes
 	if (0 == rte_my_local_pe()) {
@@ -61,13 +61,10 @@ void shmem_init()
 	rte_barrier_all();
 
 	// Wire up all PE communication
-	comm_wireup(shmem_my_pe(), shmem_n_pes());
+	comm_wireup();
 
 	// Start the communication threads
 	// comm_start();
-
-	// Free the unused information
-	// free(hostmap);
 
 	// Wait for all processes to finish
 	shmem_sync_all();

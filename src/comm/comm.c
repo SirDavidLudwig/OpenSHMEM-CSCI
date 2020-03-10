@@ -5,16 +5,6 @@
  */
 #define OFFSET(a,b) ((long)b - (long)(a->heap->ptr))
 
-/**
- * The current PE's ID
- */
-static int __my_pe;
-
-/**
- * The total number of PEs
- */
-static int __n_pes;
-
 // Layer Management --------------------------------------------------------------------------------
 
 /**
@@ -22,10 +12,11 @@ static int __n_pes;
  *
  * @param my_local_pe The local ID of this PE with respect to the node
  * @param n_local_pes The total number of PEs on this node
+ * @param my_pe       The current PE's ID
  * @param n_pes       The total number of PEs
  * @param n_nodes     The total number of nodes
  */
-void comm_init(int my_local_pe, int n_local_pes, int n_pes, int n_nodes)
+void comm_init(int my_local_pe, int n_local_pes, int my_pe, int n_pes, int n_nodes)
 {
 	// Initialize the node's shared memory region
 	comm_node_init(my_local_pe, n_local_pes, n_pes, n_nodes);
@@ -34,7 +25,7 @@ void comm_init(int my_local_pe, int n_local_pes, int n_pes, int n_nodes)
 	comm_local_init(my_local_pe, n_local_pes);
 
 	// Initialize the remote communication layer
-	// comm_remote_init();
+	comm_remote_init(my_pe, n_pes, n_pes - n_local_pes);
 }
 
 /**
@@ -42,6 +33,9 @@ void comm_init(int my_local_pe, int n_local_pes, int n_pes, int n_nodes)
  */
 void comm_finalize()
 {
+	// Finalize the remote communication layer
+	comm_remote_finalize();
+
 	// Finalize the local communication layer
 	comm_local_finalize();
 
@@ -66,10 +60,10 @@ void comm_map_locality(char *host, char **hosts, int **pes, int n_hosts, int *n_
 /**
  * Wire up the processes
  */
-void comm_wireup(int my_pe, int n_pes)
+void comm_wireup()
 {
 	comm_local_wireup();
-	// comm_remote_wireup(hostmap);
+	comm_remote_wireup();
 }
 
 // Communication Methods ---------------------------------------------------------------------------

@@ -45,6 +45,9 @@ comm: $(SOURCE_DIR)/comm/*.c
 	$(CC) -fPIC -c src/$@/comm_remote.c -o build/obj/$@/comm_remote.o
 	$(CC) -fPIC -c src/$@/comm_node.c -o build/obj/$@/comm_node.o
 
+job: $(SOURCE_DIR)/comm/*.c
+	@mkdir -p $(OBJ_DIR)/$@
+
 memory: $(SOURCE_DIR)/memory/*.c
 	@mkdir -p $(OBJ_DIR)/$@
 	$(CC) -fPIC -c src/$@/heap.c -o build/obj/$@/heap.o
@@ -53,7 +56,9 @@ memory: $(SOURCE_DIR)/memory/*.c
 	$(CC) -fPIC -c src/$@/shared_mem.c -o build/obj/$@/shared_mem.o
 
 network:
-	@mkdir -p $(OBJ_DIR)/network
+	@mkdir -p $(OBJ_DIR)/$@
+	$(CC) -fPIC -c src/$@/netutil.c -o build/obj/$@/netutil.o
+	$(CC) -fPIC -c src/$@/network.c -o build/obj/$@/network.o
 
 rte:
 	@$(MAKE) -C $(SOURCE_DIR)/rte -f Makefile $(RTE_FRAMEWORK)

@@ -19,6 +19,7 @@ OBJ_DIR := ../build/obj
 OBJ_FILES := $(OBJ_DIR)/*.o \
              $(OBJ_DIR)/comm/*.o \
              $(OBJ_DIR)/memory/*.o \
+			 $(OBJ_DIR)/network/*.o \
 			 $(OBJ_DIR)/rte/$(RTE_FRAMEWORK)/*.o
 
 # Locate all test files available
@@ -32,6 +33,6 @@ clean:
 $(TEST_NAMES):
 	@mkdir -p $(BUILD_DIR)
 #	$(CC) $@.c $(INC) $(LIB) -lopenshmem -o $(BUILD_DIR)/$@ -lrt -lpthread -lpmix
-	$(CC) $@.c $(INC) $(OBJ_FILES) -o $(BUILD_DIR)/$@ -lrt -lpthread -l$(RTE_FRAMEWORK)
+	$(CC) $@.c $(INC) $(OBJ_FILES) -o $(BUILD_DIR)/$@ -lrt -lpthread -lm -l$(RTE_FRAMEWORK)
 
 .PHONY: all clean
