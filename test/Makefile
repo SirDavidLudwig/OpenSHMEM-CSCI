@@ -4,7 +4,7 @@ INC = -I$(realpath ../build/include)
 LIB = -L$(realpath ../build/lib)
 
 # The RTE framework to use
-RTE_FRAMEWORK ?= mpi
+RTE_FRAMEWORK ?= pmix
 
 # Path to the OpenSHMEM library binary
 LIB_DIR := /home/david/Development/C/OpenSHMEM-CSCI/build/lib

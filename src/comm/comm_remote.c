@@ -38,7 +38,7 @@ socket_t *__sockets_data = NULL;
 static void __comm_remote_open_servers()
 {
 	__server_cmd = network_create_server(PORT_BASE + 2*__my_pe, __n_pes);
-	__server_data  = network_create_server(PORT_BASE + 2*__my_pe + 1, 1);
+	__server_data = network_create_server(PORT_BASE + 2*__my_pe + 1, __n_pes);
 }
 
 /**
@@ -72,7 +72,7 @@ static void __comm_remote_wire_client(int stride)
 		}
 
 		// Skip local nodes
-		map = comm_node_map(MOD(pe+i, __n_pes));
+		map = comm_node_map(MOD(pe, __n_pes));
 		if (map->type == PE_TYPE_LOCAL) {
 			continue;
 		}
@@ -103,7 +103,7 @@ static void __comm_remote_wire_server(int stride)
 	int pe;
 	int i;
 
-	for (i = stride >> 1; i < __n_pes; i += stride) {
+	for (i = (__my_pe & 1) + (stride >> 1); i < __n_pes; i += stride) {
 		// Skip local nodes
 		if (comm_node_map(i)->type == PE_TYPE_LOCAL) {
 			continue;
@@ -128,8 +128,7 @@ void comm_remote_init(int my_pe, int n_pes, int n_remote_pes)
 	__n_pes        = n_pes;
 	__n_remote_pes = n_remote_pes;
 
-	if (my_pe == 0)
-		__comm_remote_open_servers();
+	__comm_remote_open_servers();
 }
 
 /**

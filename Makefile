@@ -4,7 +4,7 @@ INC = -I$(realpath ../build/include)
 LIB = -L$(realpath ../build/lib)
 
 # The RTE framework implementation to use
-RTE_FRAMEWORK ?= mpi
+RTE_FRAMEWORK ?= pmix
 
 # Path Information ---------------------------------------------------------------------------------
 

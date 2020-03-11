@@ -4,6 +4,9 @@ build/
 # MPI hosts file
 mpd.hosts
 
+# Mac stuff
+*.DS_Store
+
 # Prerequisites
 *.d
 
