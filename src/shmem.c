@@ -101,39 +101,42 @@ void shmem_finalize()
 
 // Remote Memory Access ----------------------------------------------------------------------------
 
-/**
- * Copy data from the specified PE
- */
-void shmem_get(char *dest, const char *source, size_t nelems, int pe)
-{
-	shmem_getmem(dest, source, nelems * sizeof(char), pe);
-}
+#define SHMEM_OP(type, typename, op, suffix)                                                    \
+	void shmem_##typename##_##op##suffix(type *dest, const type *source, size_t nelems, int pe) \
+	{                                                                                           \
+		shmem_##op##mem##suffix((void*) dest, (const void*) source, nelems*sizeof(type), pe);   \
+	}
 
-/**
- * Copy data from a contiguous local data object to a data object on the specified PE
- */
-void shmem_put(char *dest, const char *source, size_t nelems, int pe)
-{
-	shmem_putmem(dest, source, nelems * sizeof(char), pe);
-}
+#define SHMEM_OPS(type, typename)       \
+	SHMEM_OP(type, typename, get, )     \
+	SHMEM_OP(type, typename, put, )     \
+	SHMEM_OP(type, typename, get, _nbi) \
+	SHMEM_OP(type, typename, put, _nbi)
 
-/**
- * [Nonblocking]
- * Copy data from the specified PE
- */
-void shmem_get_nbi(char *dest, const char *source, size_t nelems, int pe)
-{
-	shmem_getmem_nbi(dest, source, nelems * sizeof(char), pe);
-}
-
-/**
- * [Nonblocking]
- * Copy data from a contiguous local data object to a data object on the specified PE
- */
-void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe)
-{
-	shmem_putmem_nbi(dest, source, nelems * sizeof(char), pe);
-}
+SHMEM_OPS(float, float)
+SHMEM_OPS(double, double)
+SHMEM_OPS(long double, longdouble)
+SHMEM_OPS(char, char)
+SHMEM_OPS(signed char, schar)
+SHMEM_OPS(short, short)
+SHMEM_OPS(int, int)
+SHMEM_OPS(long, long)
+SHMEM_OPS(long long, longlong)
+SHMEM_OPS(unsigned char, uchar)
+SHMEM_OPS(unsigned short, ushort)
+SHMEM_OPS(unsigned int, uint)
+SHMEM_OPS(unsigned long, ulong)
+SHMEM_OPS(unsigned long long, ulonglong)
+SHMEM_OPS(int8_t, int8)
+SHMEM_OPS(int16_t, int16)
+SHMEM_OPS(int32_t, int32)
+SHMEM_OPS(int64_t, int64)
+SHMEM_OPS(uint8_t, uint8)
+SHMEM_OPS(uint16_t, uint16)
+SHMEM_OPS(uint32_t, uint32)
+SHMEM_OPS(uint64_t, uint64)
+SHMEM_OPS(size_t, size)
+SHMEM_OPS(ptrdiff_t, ptrdiff)
 
 /**
  * Copy data from the specified PE

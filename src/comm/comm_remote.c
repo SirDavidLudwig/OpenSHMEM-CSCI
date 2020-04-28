@@ -138,8 +138,8 @@ static void __comm_thread_send(socket_t *socket_group)
 		packet = __comm_thread_dequeue(&pe_index);
 		packet->request_index = ++__request_indices[pe_index];
 		bytes_written = network_send(&socket_group[pe_index], packet, sizeof(packet_t) + packet->size);
-		printf("Sent a packet: %ld\n", bytes_written);
 		free(packet);
+		printf("Sent a packet: %ld\n", bytes_written);
 	}
 }
 
