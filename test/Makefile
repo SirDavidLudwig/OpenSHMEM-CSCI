@@ -18,6 +18,7 @@ OBJ_DIR := ../build/obj
 # The object files to link with
 OBJ_FILES := $(OBJ_DIR)/*.o \
              $(OBJ_DIR)/comm/*.o \
+             $(OBJ_DIR)/job/*.o \
              $(OBJ_DIR)/memory/*.o \
 			 $(OBJ_DIR)/network/*.o \
 			 $(OBJ_DIR)/rte/$(RTE_FRAMEWORK)/*.o

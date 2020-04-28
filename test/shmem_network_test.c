@@ -24,18 +24,10 @@ int main()
 	shmem_barrier_all();
 
 	if (my_pe == 0) {
-		*a = 10;
-		shmem_putmem(b, a, sizeof(char), 1);
-		while (*b == 0);
-		printf("The result is %d\n", *b);
-		// shmem_getmem(a, b, sizeof(char), 1);
-		printf("And the get value is %d\n", *a);
-
+		*a = 50;
+		shmem_putmem(b, a, sizeof(int), 1);
 	} else {
-		while(*b == 0);
-		*a = *b*2;
-		*b = 100;
-		shmem_putmem(b, a, sizeof(char), 0);
+
 	}
 
 	shmem_finalize();

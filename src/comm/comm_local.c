@@ -124,17 +124,6 @@ struct shared_heap_t* comm_local_heap()
 }
 
 /**
- * Check if the given PE is local to the current PE
- *
- * @param pe The other PE to check
- * @return   1 if the PE is local, otherwise 0
- */
-int comm_local_has(int pe)
-{
-	return __shared_memory[pe] != NULL;
-}
-
-/**
  * Calculate the offset of the given pointer on the heap
  */
 size_t comm_local_offset(const void* ptr)

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <shmem.h>
-#include <mpi/mpi.h>
+#include <mpi.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
 #include <fcntl.h>

@@ -157,9 +157,9 @@ int network_connect(socket_t *sock, in_addr_t host, int port)
  * @param sock    The socket to receive from
  * @param buf     Where to store the received message
  * @param n_bytes The max number of bytes to receive
- * @return        The number
+ * @return        The number of bytes read
  */
-int network_receive(socket_t *sock, void *buf, size_t n_bytes)
+ssize_t network_receive(socket_t *sock, void *buf, size_t n_bytes)
 {
 	return read(sock->fd, buf, n_bytes);
 }
@@ -170,9 +170,9 @@ int network_receive(socket_t *sock, void *buf, size_t n_bytes)
  * @param sock    The socket to send through
  * @param buf     The message to send
  * @param n_bytes The number of bytes to send
- * @return        Returns the number of bytes written; -1 for errors
+ * @return        The number of bytes written; -1 for errors
  */
-int network_send(socket_t *sock, void *buf, size_t n_bytes)
+ssize_t network_send(socket_t *sock, void *buf, size_t n_bytes)
 {
 	ssize_t bytes_written;
 
@@ -193,4 +193,18 @@ void network_close(socket_t *sock)
 {
 	close(sock->fd);
 	free(sock);
+}
+
+/**
+ * Set the socket's flag to either be blocking or non-blocking
+ *
+ * @param sock     The socket to set
+ * @param blocking Indicate if the socket should be blocking
+ * @return         1 Upon success; otherwise 0
+ */
+int network_set_blocking(socket_t *sock, int blocking)
+{
+	int flags = fcntl(sock->fd, F_GETFL, 0);
+	flags = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
+	return fcntl(sock->fd, F_SETFL, flags) == 0;
 }

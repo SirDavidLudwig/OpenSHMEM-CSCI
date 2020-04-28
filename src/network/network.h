@@ -79,7 +79,7 @@ int network_connect(socket_t *sock, in_addr_t host, int port);
  * @param n_bytes The max number of bytes to receive
  * @return        The number
  */
-int network_receive(socket_t *sock, void *buf, size_t n_bytes);
+ssize_t network_receive(socket_t *sock, void *buf, size_t n_bytes);
 
 /**
  * Send a message through a socket
@@ -89,7 +89,7 @@ int network_receive(socket_t *sock, void *buf, size_t n_bytes);
  * @param n_bytes The number of bytes to send
  * @return        Returns the number of bytes written; -1 for errors
  */
-int network_send(socket_t *sock, void *buf, size_t n_bytes);
+ssize_t network_send(socket_t *sock, void *buf, size_t n_bytes);
 
 /**
  * Close the given network socket
@@ -97,3 +97,12 @@ int network_send(socket_t *sock, void *buf, size_t n_bytes);
  * @param sock The socket to close
  */
 void network_close(socket_t *sock);
+
+/**
+ * Set the socket's flag to either be blocking or non-blocking
+ *
+ * @param sock     The socket to set
+ * @param blocking Indicate if the socket should be blocking
+ * @return         1 Upon success; otherwise 0
+ */
+int network_set_blocking(socket_t *sock, int blocking);

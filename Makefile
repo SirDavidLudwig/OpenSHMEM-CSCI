@@ -33,7 +33,7 @@ libopenshmem: openshmem
 	            $(OBJ_DIR)/rte/$(RTE_FRAMEWORK)/*.o \
 	    -o $(BUILD_DIR)/lib/$@.so
 
-openshmem: comm memory network rte src/shmem.c
+openshmem: comm job memory network rte src/shmem.c
 	@mkdir -p $(BUILD_DIR)/include
 	cp $(SOURCE_DIR)/shmem.h $(BUILD_DIR)/include
 	$(CC) -fPIC -c src/shmem.c -o build/obj/shmem.o
@@ -47,6 +47,8 @@ comm: $(SOURCE_DIR)/comm/*.c
 
 job: $(SOURCE_DIR)/comm/*.c
 	@mkdir -p $(OBJ_DIR)/$@
+	$(CC) -fPIC -c src/$@/netcom.c -o build/obj/$@/netcom.o
+	$(CC) -fPIC -c src/$@/work.c -o build/obj/$@/work.o
 
 memory: $(SOURCE_DIR)/memory/*.c
 	@mkdir -p $(OBJ_DIR)/$@

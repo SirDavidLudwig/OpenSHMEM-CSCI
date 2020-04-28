@@ -63,9 +63,6 @@ void shmem_init()
 	// Wire up all PE communication
 	comm_wireup();
 
-	// Start the communication threads
-	// comm_start();
-
 	// Wait for all processes to finish
 	shmem_sync_all();
 }
@@ -182,16 +179,6 @@ void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe)
 void shmem_barrier_all()
 {
 	rte_barrier_all();
-	// int pe = shmem_my_pe();
-	// int n_pes = shmem_n_pes();
-
-	// // Increment this process' pSync value
-	// __pSync[pe]++;
-
-	// // Wait for other processes to update
-	// for (int i = 0; i < n_pes; i++) {
-	// 	while (__pSync[i] != __pSync[pe]);
-	// }
 }
 
 /**

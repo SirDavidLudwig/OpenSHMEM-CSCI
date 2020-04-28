@@ -64,6 +64,15 @@ void comm_wireup()
 {
 	comm_local_wireup();
 	comm_remote_wireup();
+	comm_start();
+}
+
+/**
+ * Start the communication threads
+ */
+void comm_start()
+{
+	comm_remote_start();
 }
 
 // Communication Methods ---------------------------------------------------------------------------
@@ -78,13 +87,36 @@ void comm_wireup()
  */
 void comm_get(void *dest, const void *source, size_t bytes, int dest_pe)
 {
-	if (comm_is_local(dest_pe)) {
+	locality_map_t *map = comm_node_map(dest_pe);
+
+	if (map->type == PE_TYPE_LOCAL) {
 		comm_local_get(dest_pe, dest, comm_local_offset(source), bytes);
+	} else {
+		comm_remote_get(dest_pe, dest, comm_local_offset(source), bytes);
 	}
 }
 
 /**
- * Send a value from another process
+ * Get a value from another process
+ *
+ * @param dest   The destination to store the result
+ * @param source The remote variable to get from
+ * @param bytes  The number of bytes to send
+ * @param pe     The destination PE
+ */
+void comm_get_nbi(void *dest, const void *source, size_t bytes, int dest_pe)
+{
+	locality_map_t *map = comm_node_map(dest_pe);
+
+	if (map->type == PE_TYPE_LOCAL) {
+		comm_local_get(dest_pe, dest, comm_local_offset(source), bytes);
+	} else {
+		comm_remote_get(dest_pe, dest, comm_local_offset(source), bytes);
+	}
+}
+
+/**
+ * Send a value to another process
  *
  * @param dest   The destination to store the result
  * @param source The local variable to send
@@ -93,9 +125,26 @@ void comm_get(void *dest, const void *source, size_t bytes, int dest_pe)
  */
 void comm_put(void *dest, const void *source, size_t bytes, int dest_pe)
 {
-	if (comm_is_local(dest_pe)) {
+	locality_map_t *map = comm_node_map(dest_pe);
+
+	if (map->type == PE_TYPE_LOCAL) {
 		comm_local_put(dest_pe, comm_local_offset(dest), source, bytes);
+	} else {
+		comm_remote_put(dest_pe, comm_local_offset(dest), source, bytes);
 	}
+}
+
+/**
+ * Send a value to another process without waiting for completion
+ *
+ * @param dest   The destination to store the result
+ * @param source The local variable to send
+ * @param bytes  The number of bytes to send
+ * @param pe     The destination PE
+ */
+void comm_put_nbi(void *dest, const void *source, size_t bytes, int pe)
+{
+	// work_put(pe, comm_local_offset(dest), source, bytes);
 }
 
 /**
@@ -117,15 +166,4 @@ void comm_flush()
 struct shared_heap_t* comm_symmetric_heap()
 {
 	return comm_local_heap();
-}
-
-/**
- * Determine if the given PE is local to the current PE
- *
- * @param  pe The other PE to check
- * @return 1 if the PE is local, otherwise 0
- */
-int comm_is_local(int pe)
-{
-	return comm_local_has(pe);
 }

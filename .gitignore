@@ -7,6 +7,9 @@ mpd.hosts
 # Mac stuff
 *.DS_Store
 
+# VS Code stuff
+.Trash*
+
 # Prerequisites
 *.d
 

@@ -38,6 +38,11 @@ void comm_map_locality(char *host, char **hosts, int **pes, int n_hosts, int *n_
  */
 void comm_wireup();
 
+/**
+ * Start the communication threads
+ */
+void comm_start();
+
 // Communication Methods ---------------------------------------------------------------------------
 
 /**
@@ -51,7 +56,7 @@ void comm_wireup();
 void comm_get(void *dest, const void* source, size_t bytes, int pe);
 
 /**
- * Send a value from another process
+ * Send a value to another process
  *
  * @param dest   The destination to store the result
  * @param source The local variable to send
@@ -59,6 +64,8 @@ void comm_get(void *dest, const void* source, size_t bytes, int pe);
  * @param pe     The destination PE
  */
 void comm_put(void *dest, const void *source, size_t bytes, int pe);
+
+void comm_put_nbi(void *dest, const void *source, size_t bytes, int pe);
 
 /**
  * [Blocking]
@@ -74,11 +81,3 @@ void comm_flush();
  * @return A reference to the symmetric heap
  */
 struct shared_heap_t* comm_symmetric_heap();
-
-/**
- * Determine if the given PE is local to the current PE
- *
- * @param  pe The other PE to check
- * @return 1 if the PE is local, otherwise 0
- */
-int comm_is_local(int pe);
