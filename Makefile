@@ -47,7 +47,6 @@ comm: $(SOURCE_DIR)/comm/*.c
 
 job: $(SOURCE_DIR)/comm/*.c
 	@mkdir -p $(OBJ_DIR)/$@
-	$(CC) -fPIC -c src/$@/netcom.c -o build/obj/$@/netcom.o
 	$(CC) -fPIC -c src/$@/work.c -o build/obj/$@/work.o
 
 memory: $(SOURCE_DIR)/memory/*.c
