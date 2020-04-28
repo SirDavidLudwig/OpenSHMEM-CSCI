@@ -1,8 +1,5 @@
 #include "shmem.h"
 
-#include <stddef.h>
-#include <stdio.h>
-
 #include "comm/comm.h"
 #include "memory/shared_heap.h"
 #include "rte/rte.h"
@@ -101,6 +98,40 @@ void shmem_finalize()
 
 // Remote Memory Access ----------------------------------------------------------------------------
 
+/**
+ * Copy data from the specified PE
+ */
+void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
+{
+	comm_get(dest, source, nelems, pe);
+}
+
+/**
+ * Copy data from a contiguous local data object to a data object on the specified PE
+ */
+void shmem_putmem(void *dest, const void *source, size_t nelems, int pe)
+{
+	comm_put(dest, source, nelems, pe);
+}
+
+/**
+ * [Nonblocking]
+ * Copy data from the specified PE
+ */
+void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe)
+{
+	//
+}
+
+/**
+ * [Nonblocking]
+ * Copy data from a contiguous local data object to a data object on the specified PE
+ */
+void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe)
+{
+	//
+}
+
 #define SHMEM_OP(type, typename, op, suffix)                                                    \
 	void shmem_##typename##_##op##suffix(type *dest, const type *source, size_t nelems, int pe) \
 	{                                                                                           \
@@ -137,40 +168,6 @@ SHMEM_OPS(uint32_t, uint32)
 SHMEM_OPS(uint64_t, uint64)
 SHMEM_OPS(size_t, size)
 SHMEM_OPS(ptrdiff_t, ptrdiff)
-
-/**
- * Copy data from the specified PE
- */
-void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
-{
-	comm_get(dest, source, nelems, pe);
-}
-
-/**
- * Copy data from a contiguous local data object to a data object on the specified PE
- */
-void shmem_putmem(void *dest, const void *source, size_t nelems, int pe)
-{
-	comm_put(dest, source, nelems, pe);
-}
-
-/**
- * [Nonblocking]
- * Copy data from the specified PE
- */
-void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe)
-{
-	//
-}
-
-/**
- * [Nonblocking]
- * Copy data from a contiguous local data object to a data object on the specified PE
- */
-void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe)
-{
-	//
-}
 
 // Collectives -------------------------------------------------------------------------------------
 

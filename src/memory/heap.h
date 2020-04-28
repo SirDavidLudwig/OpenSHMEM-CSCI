@@ -22,8 +22,8 @@ struct block_t
 struct heap_t
 {
 	void *ptr;                   // The base address of the heap
-	struct block_t *head;        // The starting memory block
-	struct block_t *tail;        // The most recently allocated block
+	struct block_t *head;        // The most recently allocated block
+	struct block_t *tail;        //
 	struct hashmap_t *block_map; // The map of memory blocks
 	size_t size;                 // The size of the block
 };

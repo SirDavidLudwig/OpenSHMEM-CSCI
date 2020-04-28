@@ -115,14 +115,16 @@ void heap_free(struct heap_t *heap, void *ptr)
 	struct block_t *block, *freed;
 
 	// Find the memory block, exit if not found
-	if (NULL == (block = hashmap_get(heap->block_map, ptr))) {
+	if (NULL == (block = hashmap_remove(heap->block_map, ptr))) {
 		return;
 	}
 
 	// Remove the block
 	freed = block->next;
 	block->next = freed->next;
-
+	if (NULL == (heap->head = freed->next)) {
+		heap->head = heap->tail;
+	}
 	free(freed);
 }
 

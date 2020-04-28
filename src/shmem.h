@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stddef.h>
+#include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 
 // Definitions -------------------------------------------------------------------------------------
@@ -38,28 +41,6 @@ void shmem_finalize();
 /**
  * Copy data from the specified PE
  */
-void shmem_get(char *dest, const char *source, size_t nelems, int pe);
-
-/**
- * Copy data from a contiguous local data object to a data object on the specified PE
- */
-void shmem_put(char *dest, const char *source, size_t nelems, int pe);
-
-/**
- * [Nonblocking]
- * Copy data from the specified PE
- */
-void shmem_get_nbi(char *dest, const char *source, size_t nelems, int pe);
-
-/**
- * [Nonblocking]
- * Copy data from a contiguous local data object to a data object on the specified PE
- */
-void shmem_put_nbi(char *dest, const char *source, size_t nelems, int pe);
-
-/**
- * Copy data from the specified PE
- */
 void shmem_getmem(void *dest, const void *source, size_t nelems, int pe);
 
 /**
@@ -78,6 +59,40 @@ void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe);
  * Copy data from a contiguous local data object to a data object on the specified PE
  */
 void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe);
+
+#define SHMEM_OP_SIGNATURE(type, typename, op, suffix)                                           \
+	void shmem_##typename##_##op##suffix(type *dest, const type *source, size_t nelems, int pe);
+
+#define SHMEM_OP_SIGNATURES(type, typename)       \
+	SHMEM_OP_SIGNATURE(type, typename, get, )     \
+	SHMEM_OP_SIGNATURE(type, typename, put, )     \
+	SHMEM_OP_SIGNATURE(type, typename, get, _nbi) \
+	SHMEM_OP_SIGNATURE(type, typename, put, _nbi)
+
+SHMEM_OP_SIGNATURES(float, float)
+SHMEM_OP_SIGNATURES(double, double)
+SHMEM_OP_SIGNATURES(long double, longdouble)
+SHMEM_OP_SIGNATURES(char, char)
+SHMEM_OP_SIGNATURES(signed char, schar)
+SHMEM_OP_SIGNATURES(short, short)
+SHMEM_OP_SIGNATURES(int, int)
+SHMEM_OP_SIGNATURES(long, long)
+SHMEM_OP_SIGNATURES(long long, longlong)
+SHMEM_OP_SIGNATURES(unsigned char, uchar)
+SHMEM_OP_SIGNATURES(unsigned short, ushort)
+SHMEM_OP_SIGNATURES(unsigned int, uint)
+SHMEM_OP_SIGNATURES(unsigned long, ulong)
+SHMEM_OP_SIGNATURES(unsigned long long, ulonglong)
+SHMEM_OP_SIGNATURES(int8_t, int8)
+SHMEM_OP_SIGNATURES(int16_t, int16)
+SHMEM_OP_SIGNATURES(int32_t, int32)
+SHMEM_OP_SIGNATURES(int64_t, int64)
+SHMEM_OP_SIGNATURES(uint8_t, uint8)
+SHMEM_OP_SIGNATURES(uint16_t, uint16)
+SHMEM_OP_SIGNATURES(uint32_t, uint32)
+SHMEM_OP_SIGNATURES(uint64_t, uint64)
+SHMEM_OP_SIGNATURES(size_t, size)
+SHMEM_OP_SIGNATURES(ptrdiff_t, ptrdiff)
 
 // Collectives -------------------------------------------------------------------------------------
 

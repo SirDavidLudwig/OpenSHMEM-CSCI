@@ -23,14 +23,14 @@ int main(void) {
 
     // begin token passing
     if (pe == 0) {
-        shmem_put(token, &val, 1, target);
+        shmem_int_put(token, &val, 1, target);
         while (*token == 0);
         printf("[%d] token received\n", pe);
     } else {
         while (*token == 0);
         printf("[%d] token received\n", pe);
         sleep(1);
-        shmem_put(token, &val, 1, target);
+        shmem_int_put(token, &val, 1, target);
     }
 
     shmem_barrier_all();
