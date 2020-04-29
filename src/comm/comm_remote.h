@@ -5,6 +5,7 @@
 
 #include "../common.h"
 #include "../network/network.h"
+#include "../rte/rte.h"
 #include "comm_node.h"
 
 #define HANDLER_PUT 0

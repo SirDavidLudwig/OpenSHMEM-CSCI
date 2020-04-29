@@ -144,7 +144,6 @@ int network_connect(socket_t *sock, in_addr_t host, int port)
 
 	// Connect to the server
 	if (-1 == connect(sock->fd, (struct sockaddr*) &sock->addr, sizeof(sock->addr))) {
-		perror("Failed to connect to host");
 		return 0;
 	}
 

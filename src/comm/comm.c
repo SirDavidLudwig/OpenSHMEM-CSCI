@@ -64,7 +64,7 @@ void comm_wireup()
 {
 	comm_local_wireup();
 	comm_remote_wireup();
-	comm_start();
+	// comm_start();
 }
 
 /**

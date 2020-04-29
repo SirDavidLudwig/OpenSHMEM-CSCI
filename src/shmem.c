@@ -50,9 +50,9 @@ void shmem_init()
 	comm_init(rte_my_local_pe(), rte_n_local_pes(), rte_my_pe(), rte_n_pes(), rte_n_nodes());
 
 	// Have the local root map the locality of nodes
-	if (0 == rte_my_local_pe()) {
+	// if (0 == rte_my_local_pe()) {
 		__shmem_map_locality();
-	}
+	// }
 
 	// Wait for all processes to initialize their comm layer
 	rte_barrier_all();

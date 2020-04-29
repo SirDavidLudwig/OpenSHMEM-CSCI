@@ -185,18 +185,20 @@ static void __comm_remote_wire_client(int stride)
 	locality_map_t *map;
 	socket_t *sock_cmd;
 	socket_t *sock_data;
-	int pe;
+	int status;
+	int pe = 0;
 	int i;
+	char buf = 1;
 
-	pe = __my_pe - (stride >> 1);
-	for (i = 0; i < __n_pes; i += stride, pe += stride) {
+	// pe = __my_pe - (stride >> 1);
+	for (pe = (stride > 2 && (__my_pe & 1)); pe < __n_pes; pe += stride) {
 		// Loop around to beginning of list
-		if (pe >= __n_pes) {
-			pe = 0;
-		}
+		// if (pe >= __n_pes) {
+		// 	pe = 0;
+		// }
 
 		// Skip local nodes
-		map = comm_node_map(MOD(pe, __n_pes));
+		map = comm_node_map(pe);
 		if (map->type == PE_TYPE_LOCAL) {
 			continue;
 		}
@@ -208,12 +210,18 @@ static void __comm_remote_wire_client(int stride)
 		network_init_socket(sock_cmd);
 		network_init_socket(sock_data);
 
-		if (0 == network_connect(sock_cmd, map->host->addr, PORT_BASE + 2*pe)) {
+		while (0 == (status = network_connect(sock_cmd, map->host->addr, PORT_BASE + 2*pe))) {
+			printf("%d -> %d Refused\n", __my_pe, pe);
+		}
+		if (status != 1) {
 			perror("Failed to connect");
 			return;
 		}
+		network_receive(sock_cmd, &buf, 1);
+		// printf("Connected\n");
 		network_send(sock_cmd, &__my_pe, sizeof(int));
 		network_connect(sock_data, map->host->addr, PORT_BASE + 2*pe + 1);
+		// printf("%d: Connected to %d\n", __my_pe, pe);
 	}
 }
 
@@ -226,6 +234,7 @@ static void __comm_remote_wire_server(int stride)
 	socket_t sock;
 	int pe;
 	int i;
+	char buf = 0;
 
 	for (i = (__my_pe & 1) + (stride >> 1); i < __n_pes; i += stride) {
 		// Skip local nodes
@@ -234,11 +243,15 @@ static void __comm_remote_wire_server(int stride)
 		}
 
 		// Accept the incoming connection
-		network_accept_2(__server_cmd, &sock);
+		if (0 == network_accept_2(__server_cmd, &sock)) {
+			printf("%d: Failed to accept socket\n", __my_pe);
+		}
+		network_send(&sock, &buf, 1);
 		network_receive(&sock, &pe, sizeof(int));
 		map = comm_node_map(pe);
 		memcpy(&__sockets_cmd[map->index], &sock, sizeof(socket_t));
 		network_accept_2(__server_data, &__sockets_data[map->index]);
+		// printf("%d: connected with %d...\n", __my_pe, pe);
 	}
 }
 
@@ -266,7 +279,7 @@ void comm_remote_finalize()
 	pthread_mutex_destroy(&__comm_thread_lock);
 	free(__request_indices);
 	free(__packet_buf);
-	__comm_remote_close_servers();
+	// __comm_remote_close_servers();
 }
 
 /**
@@ -274,6 +287,7 @@ void comm_remote_finalize()
  */
 void comm_remote_wireup()
 {
+	int complete = 0;
 	int levels = ceil(log2(__n_pes));
 
 	// Allocate memory for the sockets
@@ -281,20 +295,19 @@ void comm_remote_wireup()
 	__sockets_data = malloc(__n_remote_pes * sizeof(socket_t));
 
 	// Wire up the sockets
-	for (int level = 0; level < levels; level++) {
-		if ((__my_pe >> level) & 1) {
-			__comm_remote_wire_client(2 << level);
-		} else {
+	for (int level = 0; level < levels && complete == 0; level++) {
+		if ((__my_pe & 1) == 0 && (__my_pe % (2 << level)) == 0) {
 			__comm_remote_wire_server(2 << level);
+		} else if (level > 0 && (__my_pe  & 1) == 1 && (__my_pe % (2 << level)) == 1) {
+			__comm_remote_wire_server(2 << level);
+		} else {
+			if (level > 0) {
+				complete = 1;
+			}
+			__comm_remote_wire_client(2 << level);
 		}
 	}
 	__comm_remote_close_servers();
-
-	for (int i = 0; i < __n_remote_pes; i++) {
-		if (0 == network_set_blocking(&__sockets_cmd[i], 0)) {
-			printf("%d: ERROR: Failed to set sockets as non-blocking\n", __my_pe);
-		}
-	}
 }
 
 /**
@@ -307,6 +320,13 @@ void comm_remote_start()
 	__finished = 0;
 	__packet_buf = malloc(sizeof(packet_t));
 	__request_indices = malloc(__n_remote_pes * sizeof(long));
+
+	// for (int i = 0; i < __n_remote_pes; i++) {
+	// 	if (0 == network_set_blocking(&__sockets_cmd[i], 0)) {
+	// 		printf("%d: ERROR: Failed to set sockets as non-blocking\n", __my_pe);
+	// 	}
+	// }
+
 	memset(__request_indices, 0, __n_remote_pes * sizeof(long));
 	pthread_mutex_init(&__comm_thread_lock, NULL);
 	pthread_create(&__comm_thread_id, NULL, __comm_thread, NULL);

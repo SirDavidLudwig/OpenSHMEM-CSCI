@@ -48,12 +48,13 @@ void comm_node_init(int my_local_pe, int n_local_pes, int n_pes, int n_nodes)
 	__size            = p_sync_size + nodes_size + locality_map_size;
 
 	// Create the local symmetric heap
-	shared_mem_key("node", key);
-	if (my_local_pe == 0) {
-		shared_mem_create(key, __size, &__region);
-	} else {
-		shared_mem_open(key, __size, &__region);
-	}
+	// shared_mem_key("node", key);
+	// if (my_local_pe == 0) {
+	// 	shared_mem_create(key, __size, &__region);
+	// } else {
+	// 	shared_mem_open(key, __size, &__region);
+	// }
+	__region = malloc(__size);
 
 	// Assign the pointers to their designated locations
 	__p_sync       = (head = __region);
@@ -66,7 +67,8 @@ void comm_node_init(int my_local_pe, int n_local_pes, int n_pes, int n_nodes)
  */
 void comm_node_finalize()
 {
-	shared_mem_close(__region, __size);
+	// shared_mem_close(__region, __size);
+	free(__region);
 }
 
 /**
