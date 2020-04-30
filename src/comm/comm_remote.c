@@ -123,9 +123,9 @@ static void __comm_thread_receive()
 			}
 			data_buf = malloc(__packet_buf->size);
 			bytes_read = network_receive(&__sockets_cmd[i], data_buf, __packet_buf->size);
-			if (bytes_read != __packet_buf->size) {
-				printf("%d: ERROR: Packet Body Malformed. Expected %ld, got %ld\n", __my_pe, __packet_buf->size, bytes_read);
-			}
+			// if (bytes_read != __packet_buf->size) {
+			// 	printf("%d: ERROR: Packet Body Malformed. Expected %ld, got %ld\n", __my_pe, __packet_buf->size, bytes_read);
+			// }
 			work_put_remote(__packet_buf->handler, __my_pe, __packet_buf->origin,
 				(void*)__packet_buf->heap_offset, data_buf, __packet_buf->size);
 		}

@@ -5,6 +5,11 @@
  */
 #define OFFSET(a,b) ((long)b - (long)(a->heap->ptr))
 
+/**
+ * pSync array for collective operations
+ */
+int *__pSync;
+
 // Layer Management --------------------------------------------------------------------------------
 
 /**
@@ -43,6 +48,9 @@ void comm_finalize()
 
 	// Finalize the node's shared memory region
 	comm_node_finalize();
+
+	// Free the pSync array
+	comm_heap_free(__pSync);
 }
 
 /**
@@ -66,6 +74,11 @@ void comm_wireup()
 {
 	comm_local_wireup();
 	comm_remote_wireup();
+
+	// Create the pSync array for collective operations
+	__pSync = comm_heap_malloc(sizeof(int) * comm_remote_n_pes());
+	memset(__pSync, 0, sizeof(int) * comm_remote_n_pes());
+
 	comm_start();
 }
 
@@ -79,6 +92,26 @@ void comm_start()
 }
 
 // Communication Methods ---------------------------------------------------------------------------
+
+void comm_barrier_all()
+{
+	int i;
+	int value = 1;
+	int me = comm_remote_pe();
+	if (me == 0) {
+		for (i = 1; i < comm_remote_n_pes(); i++) {
+			while (__pSync[i] == 0);
+			__pSync[i] = 0;
+		}
+		for (i = 1; i < comm_remote_n_pes(); i++) {
+			comm_put(comm_local_offset(&__pSync[i]), &value, sizeof(int), i);
+		}
+	} else {
+		comm_put(comm_local_offset(&__pSync[me]), &value, sizeof(int), 0);
+		while (__pSync[me] == 0);
+		__pSync[me] = 0;
+	}
+}
 
 /**
  * Get a value from another process
@@ -150,7 +183,6 @@ void comm_put_nbi(void *dest, const void *source, size_t bytes, int dest_pe)
  */
 void comm_flush()
 {
-
 }
 
 // Accessors ---------------------------------------------------------------------------------------
@@ -163,4 +195,30 @@ void comm_flush()
 struct shared_heap_t* comm_symmetric_heap()
 {
 	return comm_local_heap();
+}
+
+void* comm_heap_malloc(size_t size)
+{
+	struct shared_heap_t *heap;
+	void *address;
+
+	// Get the symmetric heap
+	heap = comm_symmetric_heap();
+
+	// Allocate the requested memory
+	address = shared_heap_malloc(heap, size);
+
+	// Return the allocated address
+	return address;
+}
+
+void comm_heap_free(void *ptr)
+{
+	struct shared_heap_t *heap;
+
+	// Get the symmetric heap
+	heap = comm_symmetric_heap();
+
+	// Free the given address
+	shared_heap_free(heap, ptr);
 }

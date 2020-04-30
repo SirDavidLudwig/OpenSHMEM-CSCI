@@ -127,8 +127,8 @@ void comm_local_put(int pe, void *dest, const void *src, size_t size)
 		perror("ERROR: Attempted to perform a local shared memory access on a remote PE");
 		return;
 	}
-	// printf("Performing local put: %ld\n", dest);
-	// printf("Performing local put: %d, %ld, %d\n", map->index, size, *((char*)__shared_memory[map->index]));
+
+	// printf("Putting: %ld, %d, %ld", (long) dest, ()src, (long) size);
 	memcpy(__shared_memory[map->index] + (long) dest, src, size);
 }
 

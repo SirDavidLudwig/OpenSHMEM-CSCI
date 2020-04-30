@@ -47,6 +47,11 @@ void comm_start();
 // Communication Methods ---------------------------------------------------------------------------
 
 /**
+ * Perform a barrier across all PEs
+ */
+void comm_barrier_all();
+
+/**
  * Get a value from another process
  *
  * @param dest   The destination to store the result
@@ -86,11 +91,11 @@ void comm_flush();
 struct shared_heap_t* comm_symmetric_heap();
 
 /**
- * Get the current PEs rank
+ * Allocate memory on the symmetric heap
  */
-int comm_my_pe();
+void* comm_heap_malloc(size_t size);
 
 /**
- * Get the number of PEs in the job
+ * Free up space on the symmetric heap
  */
-int comm_n_pes();
+void comm_heap_free(void *ptr);

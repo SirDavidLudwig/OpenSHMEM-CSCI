@@ -11,32 +11,33 @@ int main()
 
 	shmem_init();
 
-	int my_pe = shmem_my_pe();
-	int n_pes = shmem_n_pes();
+	// int my_pe = shmem_my_pe();
+	// int n_pes = shmem_n_pes();
 
-	printf("My PE is %d, and there are %d PEs\n", my_pe, n_pes);
+	// printf("My PE is %d, and there are %d PEs\n", my_pe, n_pes);
 
-	char *a = shmem_malloc(sizeof(char));
-	char *b = shmem_malloc(sizeof(char));
+	// int *a = shmem_malloc(sizeof(int));
+	// int *b = shmem_malloc(sizeof(int));
 
-	*a = *b = 0;
+	// *a = *b = 0;
 
-	shmem_barrier_all();
+	// shmem_barrier_all();
 
-	if (my_pe == 0) {
-		*a = 10;
-		shmem_putmem(b, a, sizeof(char), 1);
-		while (*b == 0);
-		printf("The result is %d\n", *b);
-		shmem_getmem(a, b, sizeof(char), 1);
-		printf("And the get value is %d\n", *a);
+	// if (my_pe == 0) {
+	// 	*a = 10;
+	// 	shmem_int_put(b, a, 1, 1);
+		// while (*b == 0);
+		// printf("The result is %d\n", *b);
+		// shmem_getmem(a, b, sizeof(char), 1);
+		// printf("And the get value is %d\n", *a);
 
-	} else {
-		while(*b == 0);
-		*a = *b*2;
-		*b = 100;
-		shmem_putmem(b, a, sizeof(char), 0);
-	}
+	// } else {
+	// 	while(*b == 0);
+	// 	printf("The new value is %d\n", *b);
+		// *a = *b*2;
+		// *b = 100;
+		// shmem_putmem(b, a, sizeof(char), 0);
+	// }
 
 	shmem_finalize();
 

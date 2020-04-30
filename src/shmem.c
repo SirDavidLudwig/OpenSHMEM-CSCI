@@ -61,7 +61,7 @@ void shmem_init()
 	comm_wireup();
 
 	// Wait for all processes to finish
-	shmem_sync_all();
+	rte_barrier_all();
 }
 
 /**
@@ -178,7 +178,7 @@ SHMEM_OPS(ptrdiff_t, ptrdiff)
  */
 void shmem_barrier_all()
 {
-	rte_barrier_all();
+	comm_barrier_all();
 }
 
 /**
@@ -199,20 +199,16 @@ void shmem_sync_all()
  */
 void* shmem_malloc(size_t size)
 {
-	struct shared_heap_t *heap;
-	void *address;
+	void *result;
 
-	// Get the symmetric heap
-	heap = comm_symmetric_heap();
+	// Allocate the space
+	result = comm_heap_malloc(size);
 
-	// Allocate the requested memory
-	address = shared_heap_malloc(heap, size);
-
-	// Wait on other processes
+	// Wait for the other PEs
 	shmem_sync_all();
 
-	// Return the allocated address
-	return address;
+	// Return the result
+	return result;
 }
 
 /**
@@ -221,13 +217,8 @@ void* shmem_malloc(size_t size)
  */
 void shmem_free(void *ptr)
 {
-	struct shared_heap_t *heap;
-
-	// Get the symmetric heap
-	heap = comm_symmetric_heap();
-
-	// Free the given address
-	shared_heap_free(heap, ptr);
+	// Free the space from the heap
+	comm_heap_free(ptr);
 
 	// Wait an other processes
 	shmem_sync_all();
