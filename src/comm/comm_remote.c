@@ -114,6 +114,9 @@ static void __comm_thread_receive()
 
 	for (i = 0; i < __n_remote_pes; i++) {
 		if (-1 != (bytes_read = network_receive(&__sockets_cmd[i], __packet_buf, packet_size))) {
+			if (bytes_read == 0) {
+				continue;
+			}
 			if (bytes_read != packet_size) {
 				printf("%d: ERROR: Bad packet received. Expected %ld, got %ld\n", __my_pe, packet_size, bytes_read);
 				continue;
