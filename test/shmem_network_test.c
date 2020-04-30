@@ -16,10 +16,10 @@ int main()
 
 	printf("My PE is %d, and there are %d PEs\n", my_pe, n_pes);
 
-	char *a = shmem_malloc(sizeof(char));
-	char *b = shmem_malloc(sizeof(char));
+	int *a = shmem_malloc(sizeof(int));
+	int *b = shmem_malloc(sizeof(int));
 
-	*a = *b = 0;
+	*a = *b = 25;
 
 	shmem_barrier_all();
 
@@ -27,7 +27,7 @@ int main()
 		*a = 50;
 		shmem_putmem(b, a, sizeof(int), 1);
 	} else {
-		while (*b == 0);
+		while (*b == 25);
 		printf("B is now %d!\n", *b);
 	}
 
