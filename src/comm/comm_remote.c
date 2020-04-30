@@ -144,6 +144,7 @@ static void __comm_thread_send(socket_t *socket_group)
 		pe_index = comm_node_map(pe)->index;
 		packet->request_index = ++__request_indices[pe_index];
 		bytes_written = network_send(&socket_group[pe_index], packet, sizeof(packet_t) + packet->size);
+		printf("Bytes written: %ld\n", bytes_written);
 		free(packet);
 	}
 }
