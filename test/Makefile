@@ -7,7 +7,7 @@ LIB = -L$(realpath ../build/lib)
 RTE_FRAMEWORK ?= pmix
 
 # Path to the OpenSHMEM library binary
-LIB_DIR := /home/david/Development/C/OpenSHMEM-CSCI/build/lib
+LIB_DIR := /nfshome/dwl2x/OpenSHMEM-CSCI/build/lib
 
 # Where to build the test files
 BUILD_DIR := ./build
@@ -33,7 +33,7 @@ clean:
 
 $(TEST_NAMES):
 	@mkdir -p $(BUILD_DIR)
-#	$(CC) $@.c $(INC) $(LIB) -lopenshmem -o $(BUILD_DIR)/$@ -lrt -lpthread -lpmix
-	$(CC) $@.c $(INC) $(OBJ_FILES) -o $(BUILD_DIR)/$@ -lrt -lpthread -lm -l$(RTE_FRAMEWORK)
+	$(CC) $@.c $(INC) $(LIB) -lopenshmem -o $(BUILD_DIR)/$@ -lrt -lpthread -lpmix -lm
+	# $(CC) $@.c $(INC) $(OBJ_FILES) -o $(BUILD_DIR)/$@ -lrt -lpthread -lm -l$(RTE_FRAMEWORK)
 
 .PHONY: all clean
