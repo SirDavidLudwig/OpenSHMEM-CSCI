@@ -69,7 +69,7 @@ void shmem_init()
  */
 int shmem_my_pe()
 {
-	return rte_my_pe();
+	return comm_remote_pe();
 }
 
 /**
@@ -77,7 +77,7 @@ int shmem_my_pe()
  */
 int shmem_n_pes()
 {
-	return rte_n_pes();
+	return comm_remote_n_pes();
 }
 
 /**
