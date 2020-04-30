@@ -93,9 +93,20 @@ void comm_local_wireup()
  * @param src  The source offset position within the heap
  * @param size The number of bytes to send
  */
-void comm_local_get(int pe, void *dest, long src, size_t size)
+void comm_local_get(int pe, void *dest, const void *src, size_t size)
 {
-	memcpy(dest, __shared_memory[pe] + src, size);
+	locality_map_t *map;
+
+	map = comm_node_map(pe);
+	if (map->type != PE_TYPE_LOCAL) {
+		perror("ERROR: Attempted to perform a local shared memory access on a remote PE");
+		return;
+	}
+	if (map->index == __my_local_pe) {
+		memcpy(dest, __symmetric_heap + (long)src, size);
+	} else {
+		memcpy(dest, __shared_memory[map->index] + (long)src, size);
+	}
 }
 
 /**
@@ -106,9 +117,20 @@ void comm_local_get(int pe, void *dest, long src, size_t size)
  * @param src  The source variable to send
  * @param size The number of bytes to send
  */
-void comm_local_put(int pe, long dest, const void *src, size_t size)
+void comm_local_put(int pe, void *dest, const void *src, size_t size)
 {
-	memcpy(__shared_memory[pe] + dest, src, size);
+	locality_map_t *map;
+
+	map = comm_node_map(pe);
+	if (map->type != PE_TYPE_LOCAL) {
+		perror("ERROR: Attempted to perform a local shared memory access on a remote PE");
+		return;
+	}
+	if (map->index == __my_local_pe) {
+		memcpy(__symmetric_heap + (long) dest, src, size);
+	} else {
+		memcpy(__shared_memory[map->index] + (long) dest, src, size);
+	}
 }
 
 // Accessors ---------------------------------------------------------------------------------------

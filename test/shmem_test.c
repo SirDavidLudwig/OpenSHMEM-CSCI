@@ -28,7 +28,7 @@ int main()
 		shmem_putmem(b, a, sizeof(char), 1);
 		while (*b == 0);
 		printf("The result is %d\n", *b);
-		// shmem_getmem(a, b, sizeof(char), 1);
+		shmem_getmem(a, b, sizeof(char), 1);
 		printf("And the get value is %d\n", *a);
 
 	} else {

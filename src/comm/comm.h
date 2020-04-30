@@ -3,6 +3,7 @@
 #include "comm_node.h"
 #include "comm_local.h"
 #include "comm_remote.h"
+#include "../job/work.h"
 
 // Layer Management --------------------------------------------------------------------------------
 
@@ -53,7 +54,9 @@ void comm_start();
  * @param bytes  The number of bytes to send
  * @param pe     The destination PE
  */
-void comm_get(void *dest, const void* source, size_t bytes, int pe);
+void comm_get(void *dest, const void *source, size_t bytes, int pe);
+
+void comm_get_nbi(void *dest, const void *source, size_t bytes, int pe);
 
 /**
  * Send a value to another process
@@ -63,7 +66,7 @@ void comm_get(void *dest, const void* source, size_t bytes, int pe);
  * @param bytes  The number of bytes to send
  * @param pe     The destination PE
  */
-void comm_put(void *dest, const void *source, size_t bytes, int pe);
+void comm_put(void *dest,  const void *source, size_t bytes, int pe);
 
 void comm_put_nbi(void *dest, const void *source, size_t bytes, int pe);
 
@@ -81,3 +84,13 @@ void comm_flush();
  * @return A reference to the symmetric heap
  */
 struct shared_heap_t* comm_symmetric_heap();
+
+/**
+ * Get the current PEs rank
+ */
+int comm_my_pe();
+
+/**
+ * Get the number of PEs in the job
+ */
+int comm_n_pes();

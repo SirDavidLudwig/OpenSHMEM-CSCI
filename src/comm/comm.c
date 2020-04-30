@@ -33,6 +33,8 @@ void comm_init(int my_local_pe, int n_local_pes, int my_pe, int n_pes, int n_nod
  */
 void comm_finalize()
 {
+	work_finalize();
+
 	// Finalize the remote communication layer
 	comm_remote_finalize();
 
@@ -64,7 +66,7 @@ void comm_wireup()
 {
 	comm_local_wireup();
 	comm_remote_wireup();
-	// comm_start();
+	comm_start();
 }
 
 /**
@@ -73,6 +75,7 @@ void comm_wireup()
 void comm_start()
 {
 	comm_remote_start();
+	work_start(comm_remote_pe());
 }
 
 // Communication Methods ---------------------------------------------------------------------------
@@ -90,9 +93,9 @@ void comm_get(void *dest, const void *source, size_t bytes, int dest_pe)
 	locality_map_t *map = comm_node_map(dest_pe);
 
 	if (map->type == PE_TYPE_LOCAL) {
-		comm_local_get(dest_pe, dest, comm_local_offset(source), bytes);
+		comm_local_get(dest_pe, dest, source, bytes);
 	} else {
-		comm_remote_get(dest_pe, dest, comm_local_offset(source), bytes);
+		comm_remote_get(dest_pe, dest, source, bytes);
 	}
 }
 
@@ -106,13 +109,7 @@ void comm_get(void *dest, const void *source, size_t bytes, int dest_pe)
  */
 void comm_get_nbi(void *dest, const void *source, size_t bytes, int dest_pe)
 {
-	locality_map_t *map = comm_node_map(dest_pe);
-
-	if (map->type == PE_TYPE_LOCAL) {
-		comm_local_get(dest_pe, dest, comm_local_offset(source), bytes);
-	} else {
-		comm_remote_get(dest_pe, dest, comm_local_offset(source), bytes);
-	}
+	work_put(HANDLER_GET, dest_pe, dest, source, bytes);
 }
 
 /**
@@ -128,9 +125,9 @@ void comm_put(void *dest, const void *source, size_t bytes, int dest_pe)
 	locality_map_t *map = comm_node_map(dest_pe);
 
 	if (map->type == PE_TYPE_LOCAL) {
-		comm_local_put(dest_pe, comm_local_offset(dest), source, bytes);
+		comm_local_put(dest_pe, dest, source, bytes);
 	} else {
-		comm_remote_put(dest_pe, comm_local_offset(dest), source, bytes);
+		comm_remote_put(dest_pe, dest, source, bytes);
 	}
 }
 
@@ -142,9 +139,9 @@ void comm_put(void *dest, const void *source, size_t bytes, int dest_pe)
  * @param bytes  The number of bytes to send
  * @param pe     The destination PE
  */
-void comm_put_nbi(void *dest, const void *source, size_t bytes, int pe)
+void comm_put_nbi(void *dest, const void *source, size_t bytes, int dest_pe)
 {
-	// work_put(pe, comm_local_offset(dest), source, bytes);
+	work_put(HANDLER_PUT, dest_pe, dest, source, bytes);
 }
 
 /**

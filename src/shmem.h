@@ -40,23 +40,43 @@ void shmem_finalize();
 
 /**
  * Copy data from the specified PE
+ *
+ * @param dest   The destination address to store the result
+ * @param source The address within the symmetric heap to fetch
+ * @param nelems The number of bytes to fetch
+ * @param pe     The PE to fetch from
  */
 void shmem_getmem(void *dest, const void *source, size_t nelems, int pe);
 
 /**
  * Copy data from a contiguous local data object to a data object on the specified PE
+ *
+ * @param dest   The destination address in the symmetric heap to put the value
+ * @param source The address to store the result
+ * @param nelems The number of bytes to put
+ * @param pe     The PE to put to
  */
 void shmem_putmem(void *dest, const void *source, size_t nelems, int pe);
 
 /**
  * [Nonblocking]
  * Copy data from the specified PE
+ *
+ * @param dest   The destination address to store the result
+ * @param source The address within the symmetric heap to fetch
+ * @param nelems The number of bytes to fetch
+ * @param pe     The PE to fetch from
  */
 void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe);
 
 /**
  * [Nonblocking]
  * Copy data from a contiguous local data object to a data object on the specified PE
+ *
+ * @param dest   The destination address in the symmetric heap to put the value
+ * @param source The address to store the result
+ * @param nelems The number of bytes to put
+ * @param pe     The PE to put to
  */
 void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe);
 

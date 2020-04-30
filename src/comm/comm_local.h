@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "./comm_node.h"
 #include "../memory/shared_heap.h"
 
 /**
@@ -41,7 +42,7 @@ void comm_local_wireup();
  * @param src  The source offset position within the heap
  * @param size The number of bytes to send
  */
-void comm_local_get(int pe, void *dest, long src, size_t size);
+void comm_local_get(int pe, void *dest, const void *src, size_t size);
 
 /**
  * Put a value into a local PE
@@ -51,7 +52,7 @@ void comm_local_get(int pe, void *dest, long src, size_t size);
  * @param src  The source variable to send
  * @param size The number of bytes to send
  */
-void comm_local_put(int pe, long dest, const void *src, size_t size);
+void comm_local_put(int pe, void *dest, const void *src, size_t size);
 
 // Accessors ---------------------------------------------------------------------------------------
 

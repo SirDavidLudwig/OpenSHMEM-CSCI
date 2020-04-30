@@ -25,9 +25,10 @@ int main()
 
 	if (my_pe == 0) {
 		*a = 50;
-		// shmem_putmem(b, a, sizeof(int), 1);
+		shmem_putmem(b, a, sizeof(int), 1);
 	} else {
-
+		while (*b == 0);
+		printf("B is now %d!\n", *b);
 	}
 
 	shmem_finalize();

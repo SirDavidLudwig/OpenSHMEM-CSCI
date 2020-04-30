@@ -103,7 +103,7 @@ void shmem_finalize()
  */
 void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	comm_get(dest, source, nelems, pe);
+	comm_get(dest, (void*)comm_local_offset(source), nelems, pe);
 }
 
 /**
@@ -111,7 +111,7 @@ void shmem_getmem(void *dest, const void *source, size_t nelems, int pe)
  */
 void shmem_putmem(void *dest, const void *source, size_t nelems, int pe)
 {
-	comm_put(dest, source, nelems, pe);
+	comm_put((void*)comm_local_offset(dest), source, nelems, pe);
 }
 
 /**
@@ -120,7 +120,7 @@ void shmem_putmem(void *dest, const void *source, size_t nelems, int pe)
  */
 void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe)
 {
-	//
+	comm_get_nbi(dest, (void*)comm_local_offset(source), nelems, pe);
 }
 
 /**
@@ -129,7 +129,7 @@ void shmem_getmem_nbi(void *dest, const void *source, size_t nelems, int pe)
  */
 void shmem_putmem_nbi(void *dest, const void *source, size_t nelems, int pe)
 {
-	//
+	comm_put_nbi((void*)comm_local_offset(dest), source, nelems, pe);
 }
 
 #define SHMEM_OP(type, typename, op, suffix)                                                    \

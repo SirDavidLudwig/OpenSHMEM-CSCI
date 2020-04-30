@@ -178,6 +178,7 @@ ssize_t network_send(socket_t *sock, void *buf, size_t n_bytes)
 	// Send the network message
 	if (-1 == (bytes_written = write(sock->fd, buf, n_bytes))) {
 		perror("Failed to write network message");
+		printf("FD: %d\n", sock->fd);
 	}
 
 	return bytes_written;
