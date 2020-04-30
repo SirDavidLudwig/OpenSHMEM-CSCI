@@ -94,6 +94,7 @@ static packet_t* __comm_thread_dequeue(int *pe_index)
 	packet_queue_t *queued_packet;
 	packet_t *result = NULL;
 
+	printf("Dequeueing packet");
 	pthread_mutex_lock(&__comm_thread_lock);
 	if (NULL != (queued_packet = __queue_send)) {
 		printf("Dequeued a packet\n");
@@ -124,6 +125,7 @@ static void __comm_thread_receive()
 			if (bytes_read != __packet_buf->size) {
 				printf("%d: ERROR: Bad packet received. Expected %ld, got %ld\n", __my_pe, __packet_buf->size, bytes_read);
 			}
+			printf("Received the packet!\n");
 		}
 	}
 }
@@ -138,7 +140,7 @@ static void __comm_thread_send(socket_t *socket_group)
 		packet = __comm_thread_dequeue(&pe_index);
 		packet->request_index = ++__request_indices[pe_index];
 		bytes_written = network_send(&socket_group[pe_index], packet, sizeof(packet_t) + packet->size);
-		free(packet);
+		// free(packet);
 		printf("Sent a packet: %ld\n", bytes_written);
 	}
 }
@@ -277,8 +279,8 @@ void comm_remote_finalize()
 
 	pthread_join(__comm_thread_id, NULL);
 	pthread_mutex_destroy(&__comm_thread_lock);
-	free(__request_indices);
-	free(__packet_buf);
+	// free(__request_indices);
+	// free(__packet_buf);
 	// __comm_remote_close_servers();
 }
 
@@ -308,6 +310,12 @@ void comm_remote_wireup()
 		}
 	}
 	__comm_remote_close_servers();
+
+	for (int i = 0; i < __n_remote_pes; i++) {
+		if (0 == network_set_blocking(&__sockets_cmd[i], 0)) {
+			printf("%d: ERROR: Failed to set sockets as non-blocking\n", __my_pe);
+		}
+	}
 }
 
 /**
@@ -320,12 +328,6 @@ void comm_remote_start()
 	__finished = 0;
 	__packet_buf = malloc(sizeof(packet_t));
 	__request_indices = malloc(__n_remote_pes * sizeof(long));
-
-	// for (int i = 0; i < __n_remote_pes; i++) {
-	// 	if (0 == network_set_blocking(&__sockets_cmd[i], 0)) {
-	// 		printf("%d: ERROR: Failed to set sockets as non-blocking\n", __my_pe);
-	// 	}
-	// }
 
 	memset(__request_indices, 0, __n_remote_pes * sizeof(long));
 	pthread_mutex_init(&__comm_thread_lock, NULL);
@@ -362,7 +364,7 @@ void comm_remote_put(int pe, long dest, const void *src, size_t size)
 	printf("Performing a put request\n");
 
 	// Create the packet
-	packet = malloc(sizeof(packet) + size);
+	packet = malloc(sizeof(packet_t) + size);
 	packet->handler = HANDLER_PUT;
 	packet->size = size;
 	packet->origin = __my_pe;
