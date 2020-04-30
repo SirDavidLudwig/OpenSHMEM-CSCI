@@ -70,7 +70,7 @@ static packet_t *__packet_buf;
  *
  * @param packet The packet to enqueue
  */
-static void __comm_thread_enqueue(int pe_index, packet_t *packet)
+static void __comm_thread_enqueue(int pe, packet_t *packet)
 {
 	pthread_mutex_lock(&__comm_thread_lock);
 	if (__queue_send == NULL) {
@@ -79,7 +79,7 @@ static void __comm_thread_enqueue(int pe_index, packet_t *packet)
 		__queue_send_tail = __queue_send_tail->next = malloc(sizeof(packet_queue_t));
 	}
 	__queue_send_tail->packet = packet;
-	__queue_send_tail->pe_index = pe_index;
+	__queue_send_tail->pe = pe;
 	__queue_send_tail->next = NULL;
 	pthread_mutex_unlock(&__comm_thread_lock);
 }
@@ -89,7 +89,7 @@ static void __comm_thread_enqueue(int pe_index, packet_t *packet)
  *
  * @return A pointer to the dequeued packet if it exists; otherwise NULL
  */
-static packet_t* __comm_thread_dequeue(int *pe_index)
+static packet_t* __comm_thread_dequeue(int *pe)
 {
 	packet_queue_t *queued_packet;
 	packet_t *result = NULL;
@@ -99,7 +99,7 @@ static packet_t* __comm_thread_dequeue(int *pe_index)
 	if (NULL != (queued_packet = __queue_send)) {
 		printf("Dequeued a packet\n");
 		result = __queue_send->packet;
-		*pe_index = queued_packet->pe_index;
+		*pe = queued_packet->pe;
 		__queue_send = queued_packet->next;
 		free(queued_packet);
 	}
@@ -123,25 +123,29 @@ static void __comm_thread_receive()
 			data_buf = malloc(__packet_buf->size);
 			bytes_read = network_receive(&__sockets_cmd[i], data_buf, __packet_buf->size);
 			if (bytes_read != __packet_buf->size) {
-				printf("%d: ERROR: Bad packet received. Expected %ld, got %ld\n", __my_pe, __packet_buf->size, bytes_read);
+				printf("%d: ERROR: Packet Body Malformed. Expected %ld, got %ld\n", __my_pe, __packet_buf->size, bytes_read);
 			}
-			printf("Received the packet!\n");
+			work_put_remote(__packet_buf->handler, __my_pe, __packet_buf->origin,
+				(void*)__packet_buf->heap_offset, data_buf, __packet_buf->size);
 		}
 	}
 }
 
 static void __comm_thread_send(socket_t *socket_group)
 {
+	int pe;
 	int pe_index;
 	ssize_t bytes_written;
 	packet_t *packet;
 
 	while (__queue_send != NULL) {
-		packet = __comm_thread_dequeue(&pe_index);
+		packet = __comm_thread_dequeue(&pe);
+		pe_index = comm_node_map(pe)->index;
+		printf("Sending a packet to %d...\n", pe);
 		packet->request_index = ++__request_indices[pe_index];
 		bytes_written = network_send(&socket_group[pe_index], packet, sizeof(packet_t) + packet->size);
-		// free(packet);
-		printf("Sent a packet: %ld\n", bytes_written);
+		printf("Sent a packet to %d from %d. Bytes written: %ld\n", pe, packet->origin, bytes_written);
+		free(packet);
 	}
 }
 
@@ -279,9 +283,9 @@ void comm_remote_finalize()
 
 	pthread_join(__comm_thread_id, NULL);
 	pthread_mutex_destroy(&__comm_thread_lock);
-	// free(__request_indices);
-	// free(__packet_buf);
-	// __comm_remote_close_servers();
+	free(__request_indices);
+	free(__packet_buf);
+	__comm_remote_close_servers();
 }
 
 /**
@@ -315,6 +319,9 @@ void comm_remote_wireup()
 		if (0 == network_set_blocking(&__sockets_cmd[i], 0)) {
 			printf("%d: ERROR: Failed to set sockets as non-blocking\n", __my_pe);
 		}
+		if (0 == network_set_blocking(&__sockets_data[i], 0)) {
+			printf("%d: ERROR: Failed to set sockets as non-blocking\n", __my_pe);
+		}
 	}
 }
 
@@ -334,6 +341,22 @@ void comm_remote_start()
 	pthread_create(&__comm_thread_id, NULL, __comm_thread, NULL);
 }
 
+/**
+ * Get the global PE rank
+ */
+int comm_remote_pe()
+{
+	return __my_pe;
+}
+
+/**
+ * Get the total number of PEs in the job
+ */
+int comm_remote_n_pes()
+{
+	return __n_pes;
+}
+
 // Communication Methods ---------------------------------------------------------------------------
 
 /**
@@ -344,7 +367,7 @@ void comm_remote_start()
  * @param src  The source offset position within the heap
  * @param size The number of bytes to send
  */
-void comm_remote_get(int pe, void *dest, long src, size_t size)
+void comm_remote_get(int pe, void *dest, const void *src, size_t size)
 {
 
 }
@@ -357,20 +380,20 @@ void comm_remote_get(int pe, void *dest, long src, size_t size)
  * @param src  The source variable to send
  * @param size The number of bytes to send
  */
-void comm_remote_put(int pe, long dest, const void *src, size_t size)
+void comm_remote_put(int pe, void *dest, const void *src, size_t size)
 {
 	packet_t *packet;
 
-	printf("Performing a put request\n");
+	printf("Performing a put request from %d to %d\n", __my_pe, pe);
 
 	// Create the packet
 	packet = malloc(sizeof(packet_t) + size);
 	packet->handler = HANDLER_PUT;
 	packet->size = size;
 	packet->origin = __my_pe;
-	packet->heap_offset = dest;
+	packet->heap_offset = (long) dest;
 	memcpy(packet->data, src, size);
 
 	// Enqueue the packet
-	__comm_thread_enqueue(comm_node_map(pe)->index, packet);
+	__comm_thread_enqueue(pe, packet);
 }

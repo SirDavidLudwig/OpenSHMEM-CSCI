@@ -5,11 +5,8 @@
 
 #include "../common.h"
 #include "../network/network.h"
-#include "../rte/rte.h"
+#include "../job/work.h"
 #include "comm_node.h"
-
-#define HANDLER_PUT 0
-#define HANDLER_GET 1
 
 /**
  * The active message packet
@@ -30,7 +27,7 @@ typedef struct packet
 typedef struct packet_queue
 {
 	packet_t *packet;          // A pointer to the packet to send
-	int pe_index;              // The destination PE
+	int pe;                    // The destination PE
 	struct packet_queue *next; // The next packet in the queue
 } packet_queue_t;
 
@@ -54,6 +51,16 @@ void comm_remote_wireup();
  */
 void comm_remote_start();
 
+/**
+ * Get the global PE rank
+ */
+int comm_remote_pe();
+
+/**
+ * Get the total number of PEs in the job
+ */
+int comm_remote_n_pes();
+
 // Communication Methods ---------------------------------------------------------------------------
 
 /**
@@ -64,7 +71,7 @@ void comm_remote_start();
  * @param src  The source offset position within the heap
  * @param size The number of bytes to send
  */
-void comm_remote_get(int pe, void *dest, long src, size_t size);
+void comm_remote_get(int pe, void *dest, const void *src, size_t size);
 
 /**
  * Put a value into a remote PE
@@ -74,6 +81,6 @@ void comm_remote_get(int pe, void *dest, long src, size_t size);
  * @param src  The source variable to send
  * @param size The number of bytes to send
  */
-void comm_remote_put(int pe, long dest, const void *src, size_t size);
+void comm_remote_put(int pe, void *dest, const void *src, size_t size);
 
 // Communication Thread Methods --------------------------------------------------------------------
