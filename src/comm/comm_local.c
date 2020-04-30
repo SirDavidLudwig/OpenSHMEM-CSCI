@@ -103,11 +103,7 @@ void comm_local_get(int pe, void *dest, const void *src, size_t size)
 		perror("ERROR: Attempted to perform a local shared memory access on a remote PE");
 		return;
 	}
-	if (map->index == __my_local_pe) {
-		memcpy(dest, __symmetric_heap + (long)src, size);
-	} else {
-		memcpy(dest, __shared_memory[map->index] + (long)src, size);
-	}
+	memcpy(dest, __shared_memory[map->index] + (long)src, size);
 }
 
 /**
@@ -127,8 +123,6 @@ void comm_local_put(int pe, void *dest, const void *src, size_t size)
 		perror("ERROR: Attempted to perform a local shared memory access on a remote PE");
 		return;
 	}
-
-	// printf("Putting: %ld, %d, %ld", (long) dest, ()src, (long) size);
 	memcpy(__shared_memory[map->index] + (long) dest, src, size);
 }
 

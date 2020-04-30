@@ -104,10 +104,10 @@ void comm_barrier_all()
 			__pSync[i] = 0;
 		}
 		for (i = 1; i < comm_remote_n_pes(); i++) {
-			comm_put(comm_local_offset(&__pSync[i]), &value, sizeof(int), i);
+			comm_put((void*)comm_local_offset(&__pSync[i]), &value, sizeof(int), i);
 		}
 	} else {
-		comm_put(comm_local_offset(&__pSync[me]), &value, sizeof(int), 0);
+		comm_put((void*)comm_local_offset(&__pSync[me]), &value, sizeof(int), 0);
 		while (__pSync[me] == 0);
 		__pSync[me] = 0;
 	}

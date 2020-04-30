@@ -22,7 +22,7 @@ OBJ_DIR := $(BUILD_DIR)/obj
 
 # Makefile Targets ---------------------------------------------------------------------------------
 
-all: openshmem test/shmem_test
+all: libopenshmem
 
 # OpenSHMEM ----------------------------------------------------------------------------------------
 
@@ -30,6 +30,10 @@ libopenshmem: openshmem
 	@mkdir -p $(BUILD_DIR)/lib
 	cp $(SOURCE_DIR)/shmem.h $(BUILD_DIR)/include
 	$(CC) -shared $(OBJ_DIR)/*.o \
+				$(OBJ_DIR)/comm/*.o \
+				$(OBJ_DIR)/job/*.o \
+				$(OBJ_DIR)/memory/*.o \
+				$(OBJ_DIR)/network/*.o \
 	            $(OBJ_DIR)/rte/$(RTE_FRAMEWORK)/*.o \
 	    -o $(BUILD_DIR)/lib/$@.so
 
@@ -62,7 +66,9 @@ network:
 	$(CC) -fPIC -c src/$@/network.c -o build/obj/$@/network.o
 
 rte:
-	@$(MAKE) -C $(SOURCE_DIR)/rte -f Makefile $(RTE_FRAMEWORK)
+	# @$(MAKE) -C $(SOURCE_DIR)/rte -f Makefile $(RTE_FRAMEWORK)
+	@mkdir -p $(OBJ_DIR)/$@/pmix
+	$(CC) -fPIC -c src/$@/pmix/rte.c -o build/obj/$@/pmix/rte.o
 
 # Tests --------------------------------------------------------------------------------------------
 
