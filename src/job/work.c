@@ -37,7 +37,6 @@ static void __work_thread_enqueue(work_job_t *job)
 	} else {
 		__queue_tail = __queue_tail->next = malloc(sizeof(work_queue_t));
 	}
-	printf("Enqueued: %ld\n", job->size);
 	__queue_tail->job = job;
 	__queue_tail->next = NULL;
 	pthread_mutex_unlock(&__lock);
@@ -55,7 +54,6 @@ static work_job_t* __work_thread_dequeue()
 
 	pthread_mutex_lock(&__lock);
 	if (NULL != (queued_job = __queue_head)) {
-		printf("Dequeued a job task\n");
 		result = queued_job->job;
 		__queue_head = queued_job->next;
 		// free(queued_job);
@@ -71,7 +69,6 @@ static work_job_t* __work_thread_dequeue()
  */
 void __work_thread_execute(work_job_t *job)
 {
-	printf("Performing a job... %ld\n", job->size);
 	if (job->handler == HANDLER_PUT) {
 		comm_put(job->dest, job->src, job->size, job->dest_pe);
 	} else if (job->handler == HANDLER_GET) {
@@ -131,8 +128,6 @@ int work_put(char handler, int pe, void *dest, const void *src, size_t size)
 {
 	work_job_t *job;
 
-	printf("Putting a job request\n");
-
 	// Create the job descriptor
 	job = malloc(sizeof(work_job_t));
 	job->handler = handler;
@@ -163,8 +158,6 @@ int work_put_remote(char handler, int pe, int origin_pe, void *dest, const void 
 {
 	work_job_t *job;
 
-	printf("Putting a remote job request: %ld\n", size);
-
 	// Create the job descriptor
 	job = malloc(sizeof(work_job_t));
 	job->handler = handler;
@@ -173,8 +166,6 @@ int work_put_remote(char handler, int pe, int origin_pe, void *dest, const void 
 	job->dest = dest;
 	job->src = src;
 	job->size = size;
-
-	printf("The value of the queue: %d\n", *((int*)job->src));
 
 	// Enqueue the job
 	__work_thread_enqueue(job);

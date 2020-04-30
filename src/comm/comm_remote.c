@@ -94,10 +94,8 @@ static packet_t* __comm_thread_dequeue(int *pe)
 	packet_queue_t *queued_packet;
 	packet_t *result = NULL;
 
-	printf("Dequeueing packet");
 	pthread_mutex_lock(&__comm_thread_lock);
 	if (NULL != (queued_packet = __queue_send)) {
-		printf("Dequeued a packet\n");
 		result = __queue_send->packet;
 		*pe = queued_packet->pe;
 		__queue_send = queued_packet->next;
@@ -141,10 +139,8 @@ static void __comm_thread_send(socket_t *socket_group)
 	while (__queue_send != NULL) {
 		packet = __comm_thread_dequeue(&pe);
 		pe_index = comm_node_map(pe)->index;
-		printf("Sending a packet to %d...\n", pe);
 		packet->request_index = ++__request_indices[pe_index];
 		bytes_written = network_send(&socket_group[pe_index], packet, sizeof(packet_t) + packet->size);
-		printf("Sent a packet to %d from %d. Bytes written: %ld\n", pe, packet->origin, bytes_written);
 		free(packet);
 	}
 }
@@ -383,8 +379,6 @@ void comm_remote_get(int pe, void *dest, const void *src, size_t size)
 void comm_remote_put(int pe, void *dest, const void *src, size_t size)
 {
 	packet_t *packet;
-
-	printf("Performing a put request from %d to %d\n", __my_pe, pe);
 
 	// Create the packet
 	packet = malloc(sizeof(packet_t) + size);
